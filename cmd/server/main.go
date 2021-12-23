@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	auth "github.com/darkjedidj/cinema-service/handlers/authenticate"
+	h "github.com/darkjedidj/cinema-service/cmd/handlers/registration"
 	"github.com/gorilla/mux"
 )
 
@@ -16,7 +16,8 @@ type App struct {
 func (a *App) New() {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/registration", auth.Registration)
+	myRouter.HandleFunc("/registration", h.Registration)
+	myRouter.HandleFunc("/authentification", h.Authentification)
 	a.Router = myRouter
 }
 
@@ -24,6 +25,7 @@ func (a *App) New() {
 func (a *App) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
+
 
 func main() {
 	a := App{}
