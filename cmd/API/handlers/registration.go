@@ -1,12 +1,12 @@
 package handlers
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 
 	config "github.com/darkjedidj/cinema-service/internal"
+	db "github.com/darkjedidj/cinema-service/internal/queries"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -17,17 +17,7 @@ func Registration(response http.ResponseWriter, request *http.Request) {
 	var user config.User
 	json.NewDecoder(request.Body).Decode(&user)
 	user.Password = getHash([]byte(user.Password))
-
-	insertUser := `insert into "User"("Login", "Password","AddHalls","AddMovies","AddSessions") values($1, $2,$3,$4,$5)`
-	db, err := sql.Open("postgres", "host=localhost port=5432 user=admin dbname=admin password=admin sslmode=disable")
-	if err != nil {
-		log.Fatalln(err)
-	}
-	defer db.Close()
-	_, err = db.Exec(insertUser, user.Login, user.Password, user.AddHalls, user.AddMovies, user.AddSessions)
-	if err != nil {
-		panic(err)
-	}
+	db.CreateUser(user)
 }
 func getHash(pwd []byte) string {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)

@@ -18,6 +18,7 @@ func (a *App) New() {
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/registration", handlers.Registration)
 	myRouter.HandleFunc("/authentification", handlers.Authentification)
+	myRouter.HandleFunc("/addHalls", handlers.AddHalls)
 	a.Router = myRouter
 }
 
