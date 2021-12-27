@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	config "github.com/darkjedidj/cinema-service/internal"
 	"github.com/dgrijalva/jwt-go"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
@@ -15,8 +16,8 @@ import (
 //Registration ...
 func Authentification(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var user User
-	var dbUser User
+	var user config.User
+	var dbUser config.User
 	json.NewDecoder(request.Body).Decode(&user)
 	db, err := sql.Open("postgres", "host=localhost port=5432 user=admin dbname=admin password=admin sslmode=disable")
 	if err != nil {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 
+	config "github.com/darkjedidj/cinema-service/internal"
 	_ "github.com/lib/pq"
 	"golang.org/x/crypto/bcrypt"
 )
@@ -13,7 +14,7 @@ import (
 //Registration ...
 func Registration(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	var user User
+	var user config.User
 	json.NewDecoder(request.Body).Decode(&user)
 	user.Password = getHash([]byte(user.Password))
 
