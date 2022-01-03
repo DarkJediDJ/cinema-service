@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+option go_package = "./proto";
+package pdf;
+
+service PDFGenerator{
+rpc Generate(GenerateRequest) returns (GenerateResponse) {}
+}
+
+message GenerateRequest {
+ string movie = 2;
+ string data = 3;
+ string time = 4;
+ int32 row = 5;
+ int32 place = 6;
+}
+
+message GenerateResponse {
+string File = 1;
+}
