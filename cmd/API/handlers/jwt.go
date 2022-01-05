@@ -20,7 +20,11 @@ type Claims struct {
 
 var key = []byte(os.Getenv("ACCESS_SECRET"))
 
-var ExpirationTime = time.Now().Add(5 * time.Minute)
+var refreshKey = []byte(os.Getenv("REFRESH_SECRET"))
+
+var ExpirationTime = time.Now().Add(1 * time.Minute)
+var CoockieTime = time.Now().Add(2 * 24 * time.Hour)
+var RefreshTime = time.Now().Add(24 * time.Hour)
 
 func GenerateJWT(addHalls bool, addMovies bool, addSessions bool, userID int) (string, error) {
 	var err error
@@ -65,9 +69,9 @@ func RefreshJWT(response http.ResponseWriter, tknStr string) (string, error) {
 		response.WriteHeader(http.StatusBadRequest)
 		log.Fatal(err)
 	}
-	claims.ExpiresAt = ExpirationTime.Unix()
+	claims.ExpiresAt = RefreshTime.Unix()
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString([]byte(os.Getenv("ACCESS_SECRET")))
+	tokenString, err := token.SignedString(refreshKey)
 	if err != nil {
 		response.WriteHeader(http.StatusInternalServerError)
 		log.Fatal(err)

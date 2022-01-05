@@ -37,7 +37,14 @@ func Authentification(response http.ResponseWriter, request *http.Request) {
 	http.SetCookie(response, &http.Cookie{
 		Name:    "token",
 		Value:   jwtToken,
-		Expires: ExpirationTime,
+		Expires: CoockieTime,
 	})
+
+	_, err = http.Get("http://localhost:8085/refresh")
+	if err != nil {
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 	response.Write([]byte(jwtToken))
+
 }

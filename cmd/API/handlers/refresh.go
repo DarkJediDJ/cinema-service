@@ -18,8 +18,8 @@ func Refresh(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 	http.SetCookie(response, &http.Cookie{
-		Name:    "session_token",
+		Name:    "refresh_token",
 		Value:   refreshToken,
-		Expires: ExpirationTime,
+		Expires: CoockieTime,
 	})
 }
