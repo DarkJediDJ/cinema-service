@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.tickets
     "time" time with time zone NOT NULL,
     price real NOT NULL,
     user_id integer NOT NULL,
-    id integer NOT NULL DEFAULT nextval('tickets_ticket_id_seq'::regclass),
+    id integer SERIAL,
     session_id integer NOT NULL,
     CONSTRAINT tickets_pkey PRIMARY KEY (id),
     CONSTRAINT "FK_tickets_to_session" FOREIGN KEY (session_id)

@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS public.privileges
 (
-    id integer NOT NULL DEFAULT nextval('privileges_privilege_id_seq'::regclass),
+    id integer SERIAL,
     name text NOT NULL,
     CONSTRAINT privileges_pkey PRIMARY KEY (id)
 )
