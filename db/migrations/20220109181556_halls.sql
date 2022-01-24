@@ -6,4 +6,4 @@ CREATE TABLE IF NOT EXISTS public.halls
     CONSTRAINT halls_pkey PRIMARY KEY (hall_id)
 )
 -- +goose Down
-DROP TABLE public."hall";
+DROP TABLE public.halls;

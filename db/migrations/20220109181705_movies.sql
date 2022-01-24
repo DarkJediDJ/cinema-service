@@ -9,4 +9,4 @@ CREATE TABLE IF NOT EXISTS public.movies
 
 
 -- +goose Down
-DROP TABLE public.movie;
+DROP TABLE public.movies;

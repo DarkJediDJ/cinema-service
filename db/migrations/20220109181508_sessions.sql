@@ -19,4 +19,4 @@ CREATE TABLE IF NOT EXISTS public.sessions
 )
 
 -- +goose Down
-DROP TABLE public."session";
+DROP TABLE public.sessions;

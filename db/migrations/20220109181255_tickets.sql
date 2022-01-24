@@ -21,4 +21,4 @@ CREATE TABLE IF NOT EXISTS public.tickets
 
 
 -- +goose Down
-DROP TABLE public."ticket";
+DROP TABLE public.tickets;
