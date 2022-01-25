@@ -13,6 +13,7 @@ type Resource struct {
 	VIP bool `json:"VIP"`
 }
 
+//Create new Hall in DB
 func (r *Repository) Create(hall Resource) {
 	insertHall := `insert into halls("vip") values($1)`
 	_, err := r.DB.Exec(insertHall, hall.VIP)
@@ -21,6 +22,7 @@ func (r *Repository) Create(hall Resource) {
 	}
 }
 
+//Retrieve Hall from DB
 func (r *Repository) Retrieve(id int64) (dbHall Resource) {
 
 	rows, err := r.DB.Query(`SELECT * FROM halls WHERE "id" = $1`, id)
@@ -36,9 +38,10 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource) {
 	return
 }
 
-func (r *Repository) Delete(hall Resource) {
+//Delete Hall in DB
+func (r *Repository) Delete(id int64) {
 	insertHall := `DELETE FROM public.halls WHERE "id" = $1`
-	_, err := r.DB.Exec(insertHall, hall.ID)
+	_, err := r.DB.Exec(insertHall, id)
 	if err != nil {
 		panic(err)
 	}

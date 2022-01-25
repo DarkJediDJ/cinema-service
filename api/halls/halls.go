@@ -11,6 +11,7 @@ import (
 
 var Repo halldb.Repository
 
+//Handle handles all endpoints on this route
 func Handle(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	route := vars["route"]
@@ -26,6 +27,7 @@ func Handle(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
+//CreateHall get json and creates new Hall
 func CreateHall(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
@@ -33,13 +35,15 @@ func CreateHall(response http.ResponseWriter, request *http.Request) {
 	Repo.Create(hall)
 }
 
+//DeleteHall get json and deletes Hall with the same ID
 func DeleteHall(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	json.NewDecoder(request.Body).Decode(&hall)
-	Repo.Delete(hall)
+	Repo.Delete(int64(hall.ID))
 }
 
+//SelectHall get json and selects Hall with the same ID
 func SelectHall(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
