@@ -16,38 +16,48 @@ func Handle(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 	route := vars["route"]
 	switch route {
-	case "add":
-		CreateHall(response, request)
+	case "post":
+		Post(response, request)
 	case "get":
-		SelectHall(response, request)
+		Get(response, request)
 	case "delete":
-		DeleteHall(response, request)
+		Delete(response, request)
 	default:
 		response.WriteHeader(http.StatusBadGateway)
 	}
 }
 
-//CreateHall get json and creates new Hall
-func CreateHall(response http.ResponseWriter, request *http.Request) {
+//Create get json and creates new Hall
+func Post(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	json.NewDecoder(request.Body).Decode(&hall)
-	Repo.Create(hall)
+	err := Repo.Create(hall)
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+	}
 }
 
-//DeleteHall get json and deletes Hall with the same ID
-func DeleteHall(response http.ResponseWriter, request *http.Request) {
+//Delete get json and deletes Hall with the same ID
+func Delete(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	json.NewDecoder(request.Body).Decode(&hall)
-	Repo.Delete(int64(hall.ID))
+	err := Repo.Delete(int64(hall.ID))
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+	}
 }
 
-//SelectHall get json and selects Hall with the same ID
-func SelectHall(response http.ResponseWriter, request *http.Request) {
+//Select get json and selects Hall with the same ID
+func Get(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	json.NewDecoder(request.Body).Decode(&hall)
-	dbhall := Repo.Retrieve(int64(hall.ID))
+	dbhall, err := Repo.Retrieve(int64(hall.ID))
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
 	response.Write([]byte(fmt.Sprint(dbhall.ID)))
 }
