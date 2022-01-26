@@ -18,11 +18,11 @@ func Handle(db *sql.DB) http.HandlerFunc {
 	return func(response http.ResponseWriter, request *http.Request) {
 		switch request.Method {
 		case http.MethodPost:
-			Create(response, request, db) //[POST] BASE_URL/halls/create
+			Create(response, request, db) //[POST] BASE_URL/v1/halls/create
 		case http.MethodGet:
-			Get(response, request, db) //[GET] BASE_URL/halls/get
+			Get(response, request, db) //[GET] BASE_URL/v1/halls/get
 		case http.MethodDelete:
-			Delete(response, request, db) //[DELETE] BASE_URL/halls/delete
+			Delete(response, request, db) //[DELETE] BASE_URL/v1/halls/delete
 		default:
 			response.WriteHeader(http.StatusBadGateway)
 		}
@@ -67,7 +67,7 @@ func Delete(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	}
 }
 
-//Select get json and selects Hall with the same ID
+//Get get json and selects Hall with the same ID
 func Get(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	vars := mux.Vars(request)
 
