@@ -1,6 +1,7 @@
 package halls
 
 import (
+	"database/sql"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -12,23 +13,26 @@ import (
 var Repo halldb.Repository
 
 //Handle handles all endpoints on this route
-func Handle(response http.ResponseWriter, request *http.Request) {
-	vars := mux.Vars(request)
-	route := vars["route"]
-	switch route {
-	case "post":
-		Post(response, request)
-	case "get":
-		Get(response, request)
-	case "delete":
-		Delete(response, request)
-	default:
-		response.WriteHeader(http.StatusBadGateway)
+func Handle(db *sql.DB) http.HandlerFunc {
+	return func(response http.ResponseWriter, request *http.Request) {
+		vars := mux.Vars(request)
+		route := vars["route"]
+		switch route {
+		case "create":
+			Create(response, request, db)
+		case "get":
+			Get(response, request,db)
+		case "delete":
+			Delete(response, request,db)
+		default:
+			response.WriteHeader(http.StatusBadGateway)
+		}
 	}
 }
 
 //Create get json and creates new Hall
-func Post(response http.ResponseWriter, request *http.Request) {
+func Create(response http.ResponseWriter, request *http.Request,db *sql.DB) {
+	Repo.DB = db
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	err := json.NewDecoder(request.Body).Decode(&hall)
@@ -43,7 +47,8 @@ func Post(response http.ResponseWriter, request *http.Request) {
 }
 
 //Delete get json and deletes Hall with the same ID
-func Delete(response http.ResponseWriter, request *http.Request) {
+func Delete(response http.ResponseWriter, request *http.Request,db *sql.DB) {
+	Repo.DB = db
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	err := json.NewDecoder(request.Body).Decode(&hall)
@@ -58,7 +63,8 @@ func Delete(response http.ResponseWriter, request *http.Request) {
 }
 
 //Select get json and selects Hall with the same ID
-func Get(response http.ResponseWriter, request *http.Request) {
+func Get(response http.ResponseWriter, request *http.Request,db *sql.DB) {
+	Repo.DB = db
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
 	err := json.NewDecoder(request.Body).Decode(&hall)
