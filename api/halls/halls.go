@@ -31,8 +31,12 @@ func Handle(response http.ResponseWriter, request *http.Request) {
 func Post(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
-	json.NewDecoder(request.Body).Decode(&hall)
-	err := Repo.Create(hall)
+	err := json.NewDecoder(request.Body).Decode(&hall)
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+	err = Repo.Create(hall)
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -42,8 +46,12 @@ func Post(response http.ResponseWriter, request *http.Request) {
 func Delete(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
-	json.NewDecoder(request.Body).Decode(&hall)
-	err := Repo.Delete(int64(hall.ID))
+	err := json.NewDecoder(request.Body).Decode(&hall)
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+	err = Repo.Delete(int64(hall.ID))
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -53,7 +61,11 @@ func Delete(response http.ResponseWriter, request *http.Request) {
 func Get(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	var hall halldb.Resource
-	json.NewDecoder(request.Body).Decode(&hall)
+	err := json.NewDecoder(request.Body).Decode(&hall)
+	if err != nil {
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
 	dbhall, err := Repo.Retrieve(int64(hall.ID))
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
