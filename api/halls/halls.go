@@ -48,6 +48,8 @@ func Create(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
+
+	response.WriteHeader(http.StatusOK)
 }
 
 //Delete get json and deletes Hall with the same ID
@@ -65,6 +67,8 @@ func Delete(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
+
+	response.WriteHeader(http.StatusOK)
 }
 
 //Get get json and selects Hall with the same ID
@@ -94,4 +98,6 @@ func Get(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	response.WriteHeader(http.StatusOK)
 }
