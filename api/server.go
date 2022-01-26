@@ -20,7 +20,7 @@ type App struct {
 func (a *App) New(db *sql.DB) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/halls/{id}", halls.Handle(db))
+	myRouter.HandleFunc("/v1/halls/{id}", halls.Handle(db))
 	a.Router = myRouter
 }
 
