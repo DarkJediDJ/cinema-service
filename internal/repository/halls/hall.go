@@ -15,7 +15,7 @@ type Resource struct {
 }
 
 //Create new Hall in DB
-func (r *Repository) Create(hall Resource) error{
+func (r *Repository) Create(hall Resource) error {
 	insertHall := `insert into halls("vip","seats") values($1,$2)`
 	_, err := r.DB.Exec(insertHall, hall.VIP, hall.Seats)
 	if err != nil {
@@ -25,7 +25,7 @@ func (r *Repository) Create(hall Resource) error{
 }
 
 //Retrieve Hall from DB
-func (r *Repository) Retrieve(id int64) (dbHall Resource,e error) {
+func (r *Repository) Retrieve(id int64) (dbHall Resource, e error) {
 
 	rows, err := r.DB.Query(`SELECT * FROM halls WHERE "id" = $1`, id)
 	if err != nil {
@@ -34,7 +34,8 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource,e error) {
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err := rows.Scan(&dbHall.VIP, &dbHall.ID); err != nil {
+		err := rows.Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
+		if err != nil {
 			e = err
 			return
 		}
@@ -44,7 +45,7 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource,e error) {
 }
 
 //Delete Hall in DB
-func (r *Repository) Delete(id int64) error{
+func (r *Repository) Delete(id int64) error {
 	insertHall := `DELETE FROM public.halls WHERE "id" = $1`
 	_, err := r.DB.Exec(insertHall, id)
 	if err != nil {
