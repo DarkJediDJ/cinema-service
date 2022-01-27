@@ -18,7 +18,8 @@ type App struct {
 func (a *App) New(db *sql.DB) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/v1/halls/{id}", &halls.Handler{&hall.Repository{db}}.Handle())
+	handler := halls.Handler{Repo: &hall.Repository{DB: db}}
+	myRouter.HandleFunc("/v1/halls/{id}", handler.Handle)
 	a.Router = myRouter
 }
 

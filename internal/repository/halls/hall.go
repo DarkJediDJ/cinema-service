@@ -14,8 +14,6 @@ type Resource struct {
 	Seats int  `json:"seats"`
 }
 
-var Repo Repository
-
 //Create new Hall in DB
 func (r *Repository) Create(hall Resource) error {
 	insertHall := `insert into halls("vip","seats") values($1,$2)`
