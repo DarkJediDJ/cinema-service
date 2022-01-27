@@ -1,40 +1,40 @@
 package halls
 
 import (
-	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
-	halldb "github.com/darkjedidj/cinema-service/internal/repository/halls"
+	hall "github.com/darkjedidj/cinema-service/internal/repository/halls"
 	"github.com/gorilla/mux"
 )
 
-var Repo halldb.Repository
+type Handler struct {
+	Repo *hall.Repository
+}
 
-//Handle handles all endpoints on this route
-func Handle(db *sql.DB) http.HandlerFunc {
-	return func(response http.ResponseWriter, request *http.Request) {
-		switch request.Method {
-		case http.MethodPost:
-			Create(response, request, db) //[POST] BASE_URL/v1/halls/create
-		case http.MethodGet:
-			Get(response, request, db) //[GET] BASE_URL/v1/halls/get
-		case http.MethodDelete:
-			Delete(response, request, db) //[DELETE] BASE_URL/v1/halls/delete
-		default:
-			response.WriteHeader(http.StatusBadGateway)
-		}
+// Handle handles all endpoints on this route
+func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
+
+	switch request.Method {
+	case http.MethodPost:
+		h.Create(response, request) // [POST] BASE_URL/v1/halls/create
+	case http.MethodGet:
+		h.Get(response, request) // [GET] BASE_URL/v1/halls/get
+	case http.MethodDelete:
+		h.Delete(response, request) // [DELETE] BASE_URL/v1/halls/delete
+	default:
+		response.WriteHeader(http.StatusBadGateway)
 	}
 }
 
-//Create get json and creates new Hall
-func Create(response http.ResponseWriter, request *http.Request, db *sql.DB) {
+// Create get json and creates new Hall
+func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("Content-Type", "application/json")
 
-	var hall halldb.Resource
+	var hall hall.Resource
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
 	if err != nil {
@@ -42,9 +42,7 @@ func Create(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 		return
 	}
 
-	Repo.DB = db
-
-	err = Repo.Create(hall)
+	err = h.Repo.Create(hall)
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -52,8 +50,8 @@ func Create(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	response.WriteHeader(http.StatusOK)
 }
 
-//Delete get json and deletes Hall with the same ID
-func Delete(response http.ResponseWriter, request *http.Request, db *sql.DB) {
+// Delete get ID and deletes Hall with the same ID
+func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -61,9 +59,7 @@ func Delete(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 		response.WriteHeader(http.StatusBadGateway)
 	}
 
-	Repo.DB = db
-
-	err = Repo.Delete(int64(id))
+	err = h.Repo.Delete(int64(id))
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -71,8 +67,8 @@ func Delete(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 	response.WriteHeader(http.StatusOK)
 }
 
-//Get get json and selects Hall with the same ID
-func Get(response http.ResponseWriter, request *http.Request, db *sql.DB) {
+// Get ID and selects Hall with the same ID
+func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -80,9 +76,7 @@ func Get(response http.ResponseWriter, request *http.Request, db *sql.DB) {
 		response.WriteHeader(http.StatusBadGateway)
 	}
 
-	Repo.DB = db
-
-	dbhall, err := Repo.Retrieve(int64(id))
+	dbhall, err := h.Repo.Retrieve(int64(id))
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		return

@@ -1,4 +1,4 @@
-package halldb
+package hall
 
 import (
 	"database/sql"
@@ -13,6 +13,8 @@ type Resource struct {
 	VIP   bool `json:"VIP"`
 	Seats int  `json:"seats"`
 }
+
+var Repo Repository
 
 //Create new Hall in DB
 func (r *Repository) Create(hall Resource) error {
