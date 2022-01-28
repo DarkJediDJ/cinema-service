@@ -18,10 +18,11 @@ type App struct {
 func (a *App) New(db *sql.DB) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
+	s := myRouter.PathPrefix("/v1/halls").Subrouter()
 	handler := halls.Handler{Repo: &hall.Repository{DB: db}}
-	myRouter.HandleFunc("/v1/halls/{id}", handler.HandleID)
-	myRouter.HandleFunc("/v1/halls", handler.Handle)
-	a.Router = myRouter
+	s.HandleFunc("/{id}", handler.HandleID)
+	s.HandleFunc("/", handler.Handle)
+	a.Router = s
 }
 
 // Run starts server
