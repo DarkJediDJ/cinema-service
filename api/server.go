@@ -17,10 +17,9 @@ type App struct {
 func (a *App) New(db *sql.DB) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	s := myRouter.PathPrefix("/v1/halls").Subrouter()
-	s.HandleFunc("/{id}", halls.Init(db).HandleID)
-	s.HandleFunc("/", halls.Init(db).Handle)
-	a.Router = s
+	myRouter.HandleFunc("v1/halls/{id}", halls.Init(db).HandleID)
+	myRouter.HandleFunc("v1/halls", halls.Init(db).Handle)
+	a.Router = myRouter
 }
 
 // Run starts server
