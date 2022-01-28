@@ -82,7 +82,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusBadGateway)
 	}
 
-	err = h.Repo.Delete(int64(id))
+	err = h.s.Delete(int64(id))
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -99,7 +99,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusBadGateway)
 	}
 
-	dbhall, err := h.Repo.Retrieve(int64(id))
+	dbhall, err := h.s.Retrieve(int64(id))
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		return
@@ -120,7 +120,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 // GetAll selects all Halls
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
-	dbhalls, err := h.Repo.RetrieveAll()
+	dbhalls, err := h.s.RetrieveAll()
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		return
