@@ -14,7 +14,7 @@ import (
 )
 
 type Handler struct {
-	s *service.Service // <- придумай тут шота
+	s *service.Service // Allows use service features
 }
 
 func Init(db *sql.DB) *Handler {
