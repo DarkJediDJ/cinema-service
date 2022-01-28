@@ -15,15 +15,26 @@ type Handler struct {
 }
 
 // Handle handles all endpoints on this route
+func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) {
+
+	switch request.Method {
+	case http.MethodGet:
+		h.Get(response, request) // GET BASE_URL/v1/halls/{id}
+	case http.MethodDelete:
+		h.Delete(response, request) // DELETE BASE_URL/v1/halls/{id}
+	default:
+		response.WriteHeader(http.StatusBadGateway)
+	}
+}
+
+// Handle handles all endpoints on this route
 func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
-	case http.MethodPost:
-		h.Create(response, request) // [POST] BASE_URL/v1/halls/create
 	case http.MethodGet:
-		h.Get(response, request) // [GET] BASE_URL/v1/halls/get
-	case http.MethodDelete:
-		h.Delete(response, request) // [DELETE] BASE_URL/v1/halls/delete
+		h.GetAll(response, request) // GET BASE_URL/v1/halls
+	case http.MethodPost:
+		h.Create(response, request) // POST BASE_URL/v1/halls
 	default:
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -92,6 +103,25 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		log.Fatal(err)
 	}
+}
 
-	response.WriteHeader(http.StatusOK)
+// GetAll selects all Halls
+func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+
+	dbhalls, err := h.Repo.RetrieveAll()
+	if err != nil {
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	res, err := json.Marshal(dbhalls)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response.Header().Set("Content-Type", "application/json")
+
+	_, err = response.Write(res)
+	if err != nil {
+		log.Fatal(err)
+	}
 }

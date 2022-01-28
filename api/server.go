@@ -19,7 +19,8 @@ func (a *App) New(db *sql.DB) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
 	handler := halls.Handler{Repo: &hall.Repository{DB: db}}
-	myRouter.HandleFunc("/v1/halls/{id}", handler.Handle)
+	myRouter.HandleFunc("/v1/halls/{id}", handler.HandleID)
+	myRouter.HandleFunc("/v1/halls", handler.Handle)
 	a.Router = myRouter
 }
 
