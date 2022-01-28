@@ -1,20 +1,32 @@
 package halls
 
 import (
+	"database/sql"
 	"encoding/json"
 	"log"
 	"net/http"
 	"strconv"
 
-	hall "github.com/darkjedidj/cinema-service/internal/repository/halls"
 	"github.com/gorilla/mux"
+
+	repo "github.com/darkjedidj/cinema-service/internal/repository/halls"
+	service "github.com/darkjedidj/cinema-service/internal/service/halls"
 )
 
 type Handler struct {
-	Repo *hall.Repository
+	s *service.Service // <- придумай тут шота
 }
 
-// Handle handles all endpoints on this route
+func Init(db *sql.DB) *Handler {
+
+	service := service.Init(db)
+
+	return &Handler{
+		s: service,
+	}
+}
+
+// HandleID handles all endpoints on this route
 func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
@@ -45,7 +57,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("Content-Type", "application/json")
 
-	var hall hall.Resource
+	var hall repo.Resource
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
 	if err != nil {
@@ -53,7 +65,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.Repo.Create(hall)
+	err = h.s.Create(hall)
 	if err != nil {
 		response.WriteHeader(http.StatusBadGateway)
 	}
