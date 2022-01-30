@@ -31,6 +31,7 @@ func (r *Repository) Create(hall Resource) error {
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
 
@@ -39,7 +40,9 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource, e error) {
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
-		Where("id = ?", id).
+		Where(sq.Eq{
+			"id": id,
+		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
@@ -50,16 +53,18 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource, e error) {
 	if err != nil {
 		return Resource{}, err
 	}
+
 	e = nil
 	return
 }
 
 // Delete Hall in DB
 func (r *Repository) Delete(id int64) error {
-
 	query := sq.
 		Delete("halls").
-		Where("id = ?", id).
+		Where(sq.Eq{
+			"id": id,
+		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
@@ -69,28 +74,35 @@ func (r *Repository) Delete(id int64) error {
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }
 
 // RetrieveAll halls from DB
 func (r *Repository) RetrieveAll() ([]Resource, error) {
 	var hall Resource
+
 	var hallSlice []Resource
+
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
+
 	raws, err := query.Query()
 	if err != nil {
 		return nil, err
 	}
+
 	for raws.Next() {
 		err = raws.Scan(&hall.VIP, &hall.ID, &hall.Seats)
 		if err != nil {
 			return nil, err
 		}
+
 		hallSlice = append(hallSlice, hall)
 	}
+
 	return hallSlice, nil
 }
