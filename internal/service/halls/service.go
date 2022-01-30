@@ -10,40 +10,49 @@ type Service struct {
 	repo *hall.Repository
 }
 
+// Init returns Service object
 func Init(db *sql.DB) *Service {
 	return &Service{
 		repo: &hall.Repository{DB: db},
 	}
 }
 
+// Create logic layer for repository method
 func (s *Service) Create(hall hall.Resource) error {
 	err := s.repo.Create(hall)
 	if err != nil {
 		return err
 	}
+	
 	return nil
 }
 
+// Retrieve logic layer for repository method
 func (s *Service) Retrieve(id int64) (hall.Resource, error) {
 	hall, err := s.repo.Retrieve(int64(id))
 	if err != nil {
 		return hall, err
 	}
+
 	return hall, nil
 }
 
+// RetriveAll logic layer for repository method
 func (s *Service) RetrieveAll() ([]hall.Resource, error) {
 	halls, err := s.repo.RetrieveAll()
 	if err != nil {
 		return nil, err
 	}
+	
 	return halls, nil
 }
 
+// Delete logic layer for repository method
 func (s *Service) Delete(id int64) error {
 	err := s.repo.Delete(int64(id))
 	if err != nil {
 		return err
 	}
+
 	return nil
 }
