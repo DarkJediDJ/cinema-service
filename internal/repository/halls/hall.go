@@ -90,13 +90,13 @@ func (r *Repository) RetrieveAll() ([]Resource, error) {
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
-	raws, err := query.Query()
+		rows, err := query.Query()
 	if err != nil {
 		return nil, err
 	}
 
-	for raws.Next() {
-		err = raws.Scan(&hall.VIP, &hall.ID, &hall.Seats)
+	for rows.Next() {
+		err = rows.Scan(&hall.VIP, &hall.ID, &hall.Seats)
 		if err != nil {
 			return nil, err
 		}
