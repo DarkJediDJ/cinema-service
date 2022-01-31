@@ -65,12 +65,23 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Create(hall)
+	dbhall, err := h.s.Create(hall)
 	if err != nil {
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
+		return
 	}
 
-	response.WriteHeader(http.StatusOK)
+	res, err := json.Marshal(dbhall)
+	if err != nil {
+		log.Fatal(err)
+	}
+	response.Header().Set("Content-Type", "application/json")
+
+	_, err = response.Write(res)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 }
 
 // Delete get ID and deletes Hall with the same ID
