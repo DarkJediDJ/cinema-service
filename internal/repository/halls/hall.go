@@ -17,22 +17,38 @@ type Resource struct {
 }
 
 // Create new Hall in DB
-func (r *Repository) Create(hall Resource) error {
-	query := sq.
+func (r *Repository) Create(hall Resource) (dbHall Resource, e error) {
+	create := sq.
 		Insert("halls").
 		Columns("vip", "seats").
 		Values(hall.VIP, hall.Seats).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
-	_, err := query.
+	_, err := create.
 		Exec()
 
 	if err != nil {
-		return err
+		return Resource{}, err
 	}
 
-	return nil
+	retrive := sq.
+		Select("vip", "id", "seats").
+		From("halls").
+		OrderBy("id DESC").Limit(1).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(r.DB)
+
+	err = retrive.
+		QueryRow().
+		Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
+	
+	if err != nil {
+		return Resource{}, err
+	}
+
+	e = nil
+	return
 }
 
 // Retrieve Hall from DB
@@ -74,7 +90,7 @@ func (r *Repository) Delete(id int64) error {
 	if err != nil {
 		return err
 	}
-	
+
 	return nil
 }
 
@@ -90,7 +106,7 @@ func (r *Repository) RetrieveAll() ([]Resource, error) {
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
-		rows, err := query.Query()
+	rows, err := query.Query()
 	if err != nil {
 		return nil, err
 	}
