@@ -3,9 +3,9 @@ CREATE TABLE IF NOT EXISTS public.users
 (
     login text NOT NULL,
     password text NOT NULL,
-    id integer SERIAL,
+    id SERIAL,
     CONSTRAINT users_pkey PRIMARY KEY (id)
-)
+);
 
 
 -- +goose Down

@@ -4,7 +4,7 @@ CREATE TABLE IF NOT EXISTS public.sessions
     schedule time with time zone NOT NULL,
     hall_id integer NOT NULL,
     movie_id integer NOT NULL,
-    id integer SERIAL,
+    id SERIAL,
     CONSTRAINT sessions_pkey PRIMARY KEY (id),
     CONSTRAINT "FK_sessions_to_halls" FOREIGN KEY (hall_id)
         REFERENCES public.halls (id) MATCH SIMPLE
@@ -16,7 +16,7 @@ CREATE TABLE IF NOT EXISTS public.sessions
         ON UPDATE NO ACTION
         ON DELETE NO ACTION
         NOT VALID
-)
+);
 
 -- +goose Down
 DROP TABLE public.sessions;
