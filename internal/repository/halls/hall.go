@@ -2,6 +2,7 @@ package hall
 
 import (
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -18,35 +19,27 @@ type Resource struct {
 
 // Create new Hall in DB
 func (r *Repository) Create(hall Resource) (dbHall Resource, e error) {
-	create := sq.
+	var id int
+
+	query := sq.
 		Insert("halls").
 		Columns("vip", "seats").
 		Values(hall.VIP, hall.Seats).
+		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
-	_, err := create.
-		Exec()
-
-	if err != nil {
-		return Resource{}, err
-	}
-
-	retrive := sq.
-		Select("vip", "id", "seats").
-		From("halls").
-		OrderBy("id DESC").Limit(1).
-		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err = retrive.
+	err := query.
 		QueryRow().
-		Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
-	
+		Scan(&id)
 	if err != nil {
 		return Resource{}, err
 	}
 
+	dbHall, err = r.Retrieve(int64(id))
+	if err != nil {
+		return Resource{}, err
+	}
 	e = nil
 	return
 }
