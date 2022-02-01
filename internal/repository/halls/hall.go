@@ -2,7 +2,6 @@ package hall
 
 import (
 	"database/sql"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -36,12 +35,7 @@ func (r *Repository) Create(hall Resource) (dbHall Resource, e error) {
 		return Resource{}, err
 	}
 
-	dbHall, err = r.Retrieve(int64(id))
-	if err != nil {
-		return Resource{}, err
-	}
-	e = nil
-	return
+	return r.Retrieve(int64(id))
 }
 
 // Retrieve Hall from DB
