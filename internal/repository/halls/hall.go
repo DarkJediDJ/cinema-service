@@ -17,7 +17,7 @@ type Resource struct {
 }
 
 // Create new Hall in DB
-func (r *Repository) Create(hall Resource) (dbHall Resource, e error) {
+func (r *Repository) Create(hall Resource) (dbHall *Resource, e error) {
 	var id int
 
 	query := sq.
@@ -32,14 +32,15 @@ func (r *Repository) Create(hall Resource) (dbHall Resource, e error) {
 		QueryRow().
 		Scan(&id)
 	if err != nil {
-		return Resource{}, err
+		return nil, err
 	}
 
 	return r.Retrieve(int64(id))
 }
 
 // Retrieve Hall from DB
-func (r *Repository) Retrieve(id int64) (dbHall Resource, e error) {
+func (r *Repository) Retrieve(id int64) (hall *Resource, e error) {
+	var dbHall Resource
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
@@ -54,9 +55,9 @@ func (r *Repository) Retrieve(id int64) (dbHall Resource, e error) {
 		Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
 
 	if err != nil {
-		return Resource{}, err
+		return nil, err
 	}
-
+	hall = &dbHall
 	e = nil
 	return
 }

@@ -18,41 +18,21 @@ func Init(db *sql.DB) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(hall h.Resource) (h.Resource, error) {
-	dbhall, err := s.repo.Create(hall)
-	if err != nil {
-		return h.Resource{}, err
-	}
-
-	return dbhall, nil
+func (s *Service) Create(hall h.Resource) (*h.Resource, error) {
+	return s.repo.Create(hall)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (h.Resource, error) {
-	dbhall, err := s.repo.Retrieve(int64(id))
-	if err != nil {
-		return h.Resource{}, err
-	}
-
-	return dbhall, nil
+func (s *Service) Retrieve(id int64) (*h.Resource, error) {
+	return s.repo.Retrieve(int64(id))
 }
 
 // RetriveAll logic layer for repository method
 func (s *Service) RetrieveAll() ([]h.Resource, error) {
-	halls, err := s.repo.RetrieveAll()
-	if err != nil {
-		return nil, err
-	}
-
-	return halls, nil
+	return s.repo.RetrieveAll()
 }
 
 // Delete logic layer for repository method
 func (s *Service) Delete(id int64) error {
-	err := s.repo.Delete(int64(id))
-	if err != nil {
-		return err
-	}
-
-	return nil
+	return s.repo.Delete(int64(id))
 }
