@@ -54,9 +54,14 @@ func (r *Repository) Retrieve(id int64) (hall *Resource, e error) {
 		QueryRow().
 		Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
 
+	if err == sql.ErrNoRows {
+		return nil, nil
+	}
+
 	if err != nil {
 		return nil, err
 	}
+
 	hall = &dbHall
 	e = nil
 	return
@@ -101,6 +106,10 @@ func (r *Repository) RetrieveAll() ([]Resource, error) {
 
 	for rows.Next() {
 		err = rows.Scan(&hall.VIP, &hall.ID, &hall.Seats)
+		if err == sql.ErrNoRows {
+			return nil, nil
+		}
+
 		if err != nil {
 			return nil, err
 		}
