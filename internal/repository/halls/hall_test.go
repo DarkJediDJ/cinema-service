@@ -99,11 +99,9 @@ func TestCreateErr(t *testing.T) {
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).
 			AddRow(hall.ID))
 
-	query := "SELECT vip, id, seats FROM halls WHERE id = \\$1"
-
-	rows := sqlmock.NewRows([]string{"vip", "id", "seats"})
-
-	mock.ExpectQuery(query).WithArgs(hall.ID).WillReturnRows(rows)
+	mock.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+		WithArgs(hall.ID).
+		WillReturnRows(sqlmock.NewRows([]string{"vip", "id", "seats"}))
 
 	halldb, err := repo.Create(*hall)
 

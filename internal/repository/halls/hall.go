@@ -17,7 +17,7 @@ type Resource struct {
 }
 
 // Create new Hall in DB
-func (r *Repository) Create(hall Resource) (dbHall *Resource, e error) {
+func (r *Repository) Create(hall Resource) (*Resource, error) {
 	var id int
 
 	query := sq.
@@ -31,6 +31,7 @@ func (r *Repository) Create(hall Resource) (dbHall *Resource, e error) {
 	err := query.
 		QueryRow().
 		Scan(&id)
+
 	if err != nil {
 		return nil, err
 	}
@@ -39,8 +40,9 @@ func (r *Repository) Create(hall Resource) (dbHall *Resource, e error) {
 }
 
 // Retrieve Hall from DB
-func (r *Repository) Retrieve(id int64) (hall *Resource, e error) {
-	var dbHall Resource
+func (r *Repository) Retrieve(id int64) (*Resource, error) {
+	var res Resource
+
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
@@ -52,7 +54,7 @@ func (r *Repository) Retrieve(id int64) (hall *Resource, e error) {
 
 	err := query.
 		QueryRow().
-		Scan(&dbHall.VIP, &dbHall.ID, &dbHall.Seats)
+		Scan(&res.VIP, &res.ID, &res.Seats)
 
 	if err == sql.ErrNoRows {
 		return nil, nil
@@ -62,9 +64,7 @@ func (r *Repository) Retrieve(id int64) (hall *Resource, e error) {
 		return nil, err
 	}
 
-	hall = &dbHall
-	e = nil
-	return
+	return &res, nil
 }
 
 // Delete Hall in DB
@@ -88,11 +88,7 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll halls from DB
-func (r *Repository) RetrieveAll() ([]Resource, error) {
-	var hall Resource
-
-	var hallSlice []Resource
-
+func (r *Repository) RetrieveAll() ([]*Resource, error) {
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
@@ -104,18 +100,21 @@ func (r *Repository) RetrieveAll() ([]Resource, error) {
 		return nil, err
 	}
 
+	var data []*Resource
+
 	for rows.Next() {
-		err = rows.Scan(&hall.VIP, &hall.ID, &hall.Seats)
+		res := &Resource{}
+
+		err = rows.Scan(res.VIP, res.ID, res.Seats)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
-
 		if err != nil {
 			return nil, err
 		}
 
-		hallSlice = append(hallSlice, hall)
+		data = append(data, res)
 	}
 
-	return hallSlice, nil
+	return data, nil
 }
