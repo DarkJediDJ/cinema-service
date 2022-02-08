@@ -19,6 +19,8 @@ func (a *App) New(db *sql.DB) {
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db).HandleID)
 	myRouter.HandleFunc("/v1/halls", halls.Init(db).Handle)
+	myRouter.HandleFunc("/v1/movies/{id}", halls.Init(db).HandleID)
+	myRouter.HandleFunc("/v1/movies", halls.Init(db).Handle)
 	a.Router = myRouter
 }
 
