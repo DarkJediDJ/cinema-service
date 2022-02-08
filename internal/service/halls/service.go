@@ -28,7 +28,7 @@ func (s *Service) Retrieve(id int64) (*h.Resource, error) {
 }
 
 // RetriveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]h.Resource, error) {
+func (s *Service) RetrieveAll() ([]*h.Resource, error) {
 	return s.repo.RetrieveAll()
 }
 
