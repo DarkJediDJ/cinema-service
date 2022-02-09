@@ -12,6 +12,11 @@ type Service struct {
 	repo *h.Repository
 }
 
+const minMinutes = 30
+const maxMinutes = 350
+const minLetters = 0
+const maxLetters = 50
+
 // Init returns Service object
 func Init(db *sql.DB) *Service {
 	return &Service{
@@ -27,11 +32,11 @@ func (s *Service) Create(movie h.Resource) (*h.Resource, error) {
 		return nil, err
 	}
 
-	if duration.Minutes() < 30 || duration.Minutes() > 350 {
+	if duration.Minutes() < minMinutes || duration.Minutes() > maxMinutes {
 		return nil, errors.New("duration of movie is incorrect")
 	}
 
-	if len(movie.Name) <= 0 || len(movie.Name) > 50 {
+	if len(movie.Name) <= minLetters || len(movie.Name) > maxLetters {
 		return nil, errors.New("name of movie is incorrect")
 	}
 
