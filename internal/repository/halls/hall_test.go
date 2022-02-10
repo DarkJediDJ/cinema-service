@@ -2,6 +2,8 @@ package hall
 
 import (
 	"database/sql"
+	"fmt"
+	"github.com/darkjedidj/cinema-service/internal"
 	"log"
 	"testing"
 
@@ -192,38 +194,37 @@ func TestRetrieveAll(t *testing.T) {
 }
 
 func TestCreateNil(t *testing.T) {
+	db, mock := NewMock()
+	defer func() {
+		db.Close()
+	}()
+
 	testCreateNilCases := []struct {
-		description string
-		err         error
-		rows        *sqlmock.Rows
+		name           string
+		expectedError  error
+		expectedResult *Resource
+		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
-		{"Test create error nil", sql.ErrNoRows, nil},
-		{"Test create", nil, sqlmock.NewRows([]string{"vip", "id", "seats"}).AddRow(hall.VIP, hall.ID, hall.Seats)},
+		{
+			name:           "failed",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+					WillReturnError(fmt.Errorf("blah blah"))
+			},
+		},
 	}
 
 	for _, tc := range testCreateNilCases {
-		t.Run(tc.description, func(t *testing.T) {
-			db, mock := NewMock()
+		t.Run(tc.name, func(t *testing.T) {
 			repo := &Repository{DB: db}
 
-			defer func() {
-				repo.DB.Close()
-			}()
+			tc.prepare(mock)
+			res, err := repo.Create(*hall)
 
-			mock.ExpectQuery("INSERT INTO halls (.*)").
-				WillReturnRows(sqlmock.NewRows([]string{"id"}).
-					AddRow(hall.ID))
-
-			mock.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").WithArgs(hall.ID).WillReturnRows(tc.rows)
-
-			halldb, err := repo.Create(*hall)
-			if assert.Equal(t, tc.err, err) {
-				assert.Nil(t, halldb)
-				t.Skip()
-			}
-
-			assert.NotNil(t, halldb)
-			assert.NoError(t, err)
+			assert.Equal(t, tc.expectedResult, res)
+			assert.Equal(t, tc.expectedError, err)
 		})
 	}
 }

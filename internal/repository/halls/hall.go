@@ -2,6 +2,7 @@ package hall
 
 import (
 	"database/sql"
+	"github.com/darkjedidj/cinema-service/internal"
 
 	sq "github.com/Masterminds/squirrel"
 )
@@ -33,7 +34,9 @@ func (r *Repository) Create(hall Resource) (*Resource, error) {
 		Scan(&id)
 
 	if err != nil {
-		return nil, err
+		// log the actual error here
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	return r.Retrieve(int64(id))
