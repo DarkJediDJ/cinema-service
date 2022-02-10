@@ -108,7 +108,7 @@ func (r *Repository) RetrieveAll() ([]*Resource, error) {
 	for rows.Next() {
 		res := &Resource{}
 
-		err = rows.Scan(res.VIP, res.ID, res.Seats)
+		err = rows.Scan(&res.VIP, &res.ID, &res.Seats)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
