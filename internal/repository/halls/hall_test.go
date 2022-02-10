@@ -3,9 +3,10 @@ package hall
 import (
 	"database/sql"
 	"fmt"
-	"github.com/darkjedidj/cinema-service/internal"
 	"log"
 	"testing"
+
+	"github.com/darkjedidj/cinema-service/internal"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -26,197 +27,57 @@ func NewMock() (*sql.DB, sqlmock.Sqlmock) {
 	return db, mock
 }
 
-func TestRetrieve(t *testing.T) {
-	t.Run("Test retrive", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "SELECT vip, id, seats FROM halls WHERE id = \\$1"
-		rows := sqlmock.NewRows([]string{"vip", "id", "seats"}).
-			AddRow(hall.VIP, hall.ID, hall.Seats)
-
-		mock.ExpectQuery(query).WithArgs(hall.ID).WillReturnRows(rows)
-
-		halldb, err := repo.Retrieve(int64(hall.ID))
-
-		assert.NotNil(t, halldb)
-		assert.NoError(t, err)
-	})
-}
-
 func TestCreate(t *testing.T) {
-	t.Run("Test create", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		mock.ExpectQuery("INSERT INTO halls (.*)").
-			WillReturnRows(sqlmock.NewRows([]string{"id"}).
-				AddRow(hall.ID))
-
-		query := "SELECT vip, id, seats FROM halls WHERE id = \\$1"
-
-		rows := sqlmock.NewRows([]string{"vip", "id", "seats"}).
-			AddRow(hall.VIP, hall.ID, hall.Seats)
-
-		mock.ExpectQuery(query).WithArgs(hall.ID).WillReturnRows(rows)
-
-		halldb, err := repo.Create(*hall)
-
-		assert.NotNil(t, halldb)
-		assert.NoError(t, err)
-	})
-}
-
-func TestRetrieveErr(t *testing.T) {
-	t.Run("Test retrive error", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "SELECT vip, id, seats FROM halls WHERE id = \\$1"
-		rows := sqlmock.NewRows([]string{"vip", "id", "seats"})
-
-		mock.ExpectQuery(query).WithArgs(hall.ID).WillReturnRows(rows)
-
-		halldb, err := repo.Retrieve(int64(hall.ID))
-
-		assert.Nil(t, halldb)
-		assert.Error(t, err)
-	})
-}
-
-func TestCreateErr(t *testing.T) {
-	t.Run("Test create error", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		mock.ExpectQuery("INSERT INTO halls (.*)").
-			WillReturnRows(sqlmock.NewRows([]string{"id"}).
-				AddRow(hall.ID))
-
-		mock.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
-			WithArgs(hall.ID).
-			WillReturnRows(sqlmock.NewRows([]string{"vip", "id", "seats"}))
-
-		halldb, err := repo.Create(*hall)
-
-		assert.Nil(t, halldb)
-		assert.Error(t, err)
-	})
-}
-
-func TestDelete(t *testing.T) {
-	t.Run("Test delete", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "DELETE FROM halls WHERE id = \\$1"
-
-		mock.ExpectExec(query).WithArgs(hall.ID).WillReturnResult(sqlmock.NewResult(1, 1))
-
-		err := repo.Delete(int64(hall.ID))
-		assert.NoError(t, err)
-	})
-}
-
-func TestDeleteErr(t *testing.T) {
-	t.Run("Test delete err", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "DELETE FROM halls WHERE id = \\$1"
-
-		mock.ExpectExec(query).WithArgs(hall.ID)
-
-		err := repo.Delete(int64(hall.ID))
-		assert.Error(t, err)
-	})
-}
-
-func TestRetrieveNil(t *testing.T) {
-	t.Run("Test retrive no rows", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "SELECT vip, id, seats FROM halls WHERE id = \\$1"
-		rows := sqlmock.NewRows([]string{"vip", "id", "seats"}).
-			AddRow(hall.VIP, hall.ID, hall.Seats)
-
-		mock.ExpectQuery(query).WithArgs(hall.ID).WillReturnRows(rows)
-
-		halldb, err := repo.Retrieve(int64(1))
-		assert.Nil(t, halldb)
-		assert.Error(t, err)
-	})
-}
-
-func TestRetrieveAll(t *testing.T) {
-	t.Run("Test retriveAll", func(t *testing.T) {
-		db, mock := NewMock()
-		repo := &Repository{DB: db}
-		defer func() {
-			repo.DB.Close()
-		}()
-
-		query := "SELECT vip, id, seats FROM halls"
-		rows := sqlmock.NewRows([]string{"vip", "id", "seats"}).
-			AddRow(hall.VIP, hall.ID, hall.Seats)
-
-		mock.ExpectQuery(query).WillReturnRows(rows)
-
-		halldb, err := repo.RetrieveAll()
-		assert.NotNil(t, halldb)
-		assert.NoError(t, err)
-	})
-}
-
-func TestCreateNil(t *testing.T) {
 	db, mock := NewMock()
 	defer func() {
 		db.Close()
 	}()
 
-	testCreateNilCases := []struct {
+	testCreateCases := []struct {
 		name           string
 		expectedError  error
 		expectedResult *Resource
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
-			name:           "failed",
+			name:           "failed, database error",
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
-					WillReturnError(fmt.Errorf("blah blah"))
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+		},
+		{
+			name:           "success",
+			expectedError:  nil,
+			expectedResult: hall,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+					WillReturnRows(sqlm2.
+						NewRows([]string{"id"}).
+						AddRow(hall.ID))
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+					WithArgs(hall.ID).
+					WillReturnRows(sqlm2.
+						NewRows([]string{"vip", "id", "seats"}).
+						AddRow(hall.VIP, hall.ID, hall.Seats))
+			},
+		},
+		{
+			name:           "failed, retrieve error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+					WillReturnRows(sqlm2.
+						NewRows([]string{"id"}).
+						AddRow(hall.ID)).WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
 		},
 	}
 
-	for _, tc := range testCreateNilCases {
+	for _, tc := range testCreateCases {
 		t.Run(tc.name, func(t *testing.T) {
 			repo := &Repository{DB: db}
 
@@ -224,6 +85,172 @@ func TestCreateNil(t *testing.T) {
 			res, err := repo.Create(*hall)
 
 			assert.Equal(t, tc.expectedResult, res)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestRetrieve(t *testing.T) {
+	db, mock := NewMock()
+	defer func() {
+		db.Close()
+	}()
+
+	testRetrieveCases := []struct {
+		name           string
+		expectedError  error
+		expectedResult *Resource
+		prepare        func(sqlm2 sqlmock.Sqlmock)
+		id             int64
+	}{
+		{
+			name:           "success",
+			expectedError:  nil,
+			expectedResult: hall,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+					WithArgs(hall.ID).
+					WillReturnRows(sqlm2.
+						NewRows([]string{"vip", "id", "seats"}).
+						AddRow(hall.VIP, hall.ID, hall.Seats))
+			},
+			id: int64(hall.ID),
+		},
+		{
+			name:           "failed, database error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+			id: int64(hall.ID),
+		},
+		{
+			name:           "failed, sql no rows error",
+			expectedError:  nil,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+					WillReturnRows(sqlm2.
+						NewRows([]string{}))
+			},
+			id: 5,
+		},
+	}
+
+	for _, tc := range testRetrieveCases {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &Repository{DB: db}
+
+			tc.prepare(mock)
+			res, err := repo.Retrieve(tc.id)
+
+			assert.Equal(t, tc.expectedResult, res)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestRetrieveAll(t *testing.T) {
+	db, mock := NewMock()
+	defer func() {
+		db.Close()
+	}()
+
+	testRetrieveAllCases := []struct {
+		name           string
+		expectedError  error
+		expectedResult []*Resource
+		prepare        func(sqlm2 sqlmock.Sqlmock)
+	}{
+		{
+			name:           "success",
+			expectedError:  nil,
+			expectedResult: []*Resource{hall},
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+					WillReturnRows(sqlm2.
+						NewRows([]string{"vip", "id", "seats"}).
+						AddRow(hall.VIP, hall.ID, hall.Seats))
+			},
+		},
+		{
+			name:           "failed, database error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+		},
+		{
+			name:           "failed, sql no rows error",
+			expectedError:  nil,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+					WillReturnRows(sqlm2.NewRows([]string{}))
+			},
+		},
+	}
+
+	for _, tc := range testRetrieveAllCases {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &Repository{DB: db}
+
+			tc.prepare(mock)
+			res, err := repo.RetrieveAll()
+			fmt.Print(res)
+			assert.Equal(t, tc.expectedResult, res)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	db, mock := NewMock()
+	defer func() {
+		db.Close()
+	}()
+
+	testDeleteCases := []struct {
+		name           string
+		expectedError  error
+		expectedResult *Resource
+		prepare        func(sqlm2 sqlmock.Sqlmock)
+		id             int64
+	}{
+		{
+			name:           "success",
+			expectedError:  nil,
+			expectedResult: hall,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec("DELETE FROM halls WHERE id = \\$1").
+					WithArgs(hall.ID).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+			id: int64(hall.ID),
+		},
+		{
+			name:           "failed, database error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec("DELETE FROM halls WHERE id = \\$1").
+					WithArgs(hall.ID).
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+			id: int64(hall.ID),
+		},
+	}
+
+	for _, tc := range testDeleteCases {
+		t.Run(tc.name, func(t *testing.T) {
+			repo := &Repository{DB: db}
+
+			tc.prepare(mock)
+			err := repo.Delete(tc.id)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
