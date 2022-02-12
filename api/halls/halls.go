@@ -3,6 +3,7 @@ package halls
 import (
 	"database/sql"
 	"encoding/json"
+	"github.com/darkjedidj/cinema-service/internal"
 	"log"
 	"net/http"
 	"strconv"
@@ -14,7 +15,7 @@ import (
 )
 
 type Handler struct {
-	s *service.Service // Allows use service features
+	s internal.Service // Allows use service features
 }
 
 func Init(db *sql.DB) *Handler {
@@ -65,7 +66,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	dbhall, err := h.s.Create(hall)
+	dbhall, err := h.s.Create(&hall)
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		return

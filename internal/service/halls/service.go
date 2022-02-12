@@ -2,6 +2,7 @@ package halls
 
 import (
 	"database/sql"
+	"github.com/darkjedidj/cinema-service/internal"
 
 	h "github.com/darkjedidj/cinema-service/internal/repository/halls"
 )
@@ -18,8 +19,8 @@ func Init(db *sql.DB) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(hall h.Resource) (*h.Resource, error) {
-	return s.repo.Create(hall)
+func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error) {
+	return s.repo.Create(r)
 }
 
 // Retrieve logic layer for repository method

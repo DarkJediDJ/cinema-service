@@ -17,9 +17,16 @@ type Resource struct {
 	Seats int  `json:"seats"`
 }
 
+func (r *Resource) GID() int {
+	return r.ID
+}
+
 // Create new Hall in DB
-func (r *Repository) Create(hall Resource) (*Resource, error) {
+func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
 	var id int
+
+	hall, _ := i.(*Resource)
+	// CHECK ERROR -> hall, ok := i.(*Resource)
 
 	query := sq.
 		Insert("halls").
