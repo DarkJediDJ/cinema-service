@@ -2,6 +2,7 @@ package hall
 
 import (
 	"database/sql"
+
 	"github.com/darkjedidj/cinema-service/internal"
 
 	sq "github.com/Masterminds/squirrel"
@@ -50,7 +51,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 }
 
 // Retrieve Hall from DB
-func (r *Repository) Retrieve(id int64) (*Resource, error) {
+func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
 	query := sq.
@@ -98,7 +99,7 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll halls from DB
-func (r *Repository) RetrieveAll() ([]*Resource, error) {
+func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
@@ -126,5 +127,11 @@ func (r *Repository) RetrieveAll() ([]*Resource, error) {
 		data = append(data, res)
 	}
 
-	return data, nil
+	var dataSlice []*Resource = data
+	var interfaceSlice []internal.Identifiable = make([]internal.Identifiable, len(dataSlice))
+	for i, d := range dataSlice {
+		interfaceSlice[i] = d
+	}
+
+	return interfaceSlice, nil
 }

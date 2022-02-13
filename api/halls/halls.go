@@ -3,10 +3,11 @@ package halls
 import (
 	"database/sql"
 	"encoding/json"
-	"github.com/darkjedidj/cinema-service/internal"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/darkjedidj/cinema-service/internal"
 
 	"github.com/gorilla/mux"
 
@@ -68,7 +69,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	dbhall, err := h.s.Create(&hall)
 	if err != nil {
-		response.WriteHeader(http.StatusBadRequest)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 

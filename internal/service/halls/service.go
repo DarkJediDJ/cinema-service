@@ -2,6 +2,7 @@ package halls
 
 import (
 	"database/sql"
+
 	"github.com/darkjedidj/cinema-service/internal"
 
 	h "github.com/darkjedidj/cinema-service/internal/repository/halls"
@@ -24,12 +25,12 @@ func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (*h.Resource, error) {
+func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
 	return s.repo.Retrieve(int64(id))
 }
 
 // RetriveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]*h.Resource, error) {
+func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
 	return s.repo.RetrieveAll()
 }
 

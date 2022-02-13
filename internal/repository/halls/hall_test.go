@@ -36,7 +36,7 @@ func TestCreate(t *testing.T) {
 	testCreateCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
@@ -82,7 +82,7 @@ func TestCreate(t *testing.T) {
 			repo := &Repository{DB: db}
 
 			tc.prepare(mock)
-			res, err := repo.Create(*hall)
+			res, err := repo.Create(hall)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -99,7 +99,7 @@ func TestRetrieve(t *testing.T) {
 	testRetrieveCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 		id             int64
 	}{
@@ -161,13 +161,13 @@ func TestRetrieveAll(t *testing.T) {
 	testRetrieveAllCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult []*Resource
+		expectedResult []internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: []*Resource{hall},
+			expectedResult: []internal.Identifiable{hall},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
 					WillReturnRows(sqlm2.
@@ -187,10 +187,10 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			name:           "failed, sql no rows error",
 			expectedError:  nil,
-			expectedResult: nil,
+			expectedResult: []internal.Identifiable{},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
-					WillReturnRows(sqlm2.NewRows([]string{}))
+				WillReturnRows(sqlm2.NewRows([]string{}))
 			},
 		},
 	}
@@ -201,7 +201,6 @@ func TestRetrieveAll(t *testing.T) {
 
 			tc.prepare(mock)
 			res, err := repo.RetrieveAll()
-			fmt.Print(res)
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
 		})
