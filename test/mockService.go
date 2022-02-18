@@ -1,6 +1,8 @@
 package test
 
-import "github.com/darkjedidj/cinema-service/internal"
+import (
+	"github.com/darkjedidj/cinema-service/internal"
+)
 
 type MockService struct {
 	ExpectedError  error
