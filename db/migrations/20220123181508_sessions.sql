@@ -1,7 +1,7 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS public.sessions
 (
-    schedule time with time zone NOT NULL,
+    schedule character varying(50) NOT NULL,
     hall_id integer NOT NULL,
     movie_id integer NOT NULL,
     id SERIAL,
