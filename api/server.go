@@ -6,6 +6,7 @@ import (
 	"net/http"
 
 	"github.com/darkjedidj/cinema-service/api/halls"
+	"github.com/darkjedidj/cinema-service/api/sessions"
 	"github.com/gorilla/mux"
 )
 
@@ -19,6 +20,8 @@ func (a *App) New(db *sql.DB) {
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db).HandleID)
 	myRouter.HandleFunc("/v1/halls", halls.Init(db).Handle)
+	myRouter.HandleFunc("/v1/sessions/{id}", sessions.Init(db).HandleID)
+	myRouter.HandleFunc("/v1/sessions", sessions.Init(db).Handle)
 	a.Router = myRouter
 }
 
