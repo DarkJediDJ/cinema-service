@@ -3,9 +3,9 @@ package hall
 import (
 	"database/sql"
 
-	"github.com/darkjedidj/cinema-service/internal"
-
 	sq "github.com/Masterminds/squirrel"
+
+	"github.com/darkjedidj/cinema-service/internal"
 )
 
 type Repository struct {
@@ -24,7 +24,7 @@ func (r *Resource) GID() int {
 
 // Create new Hall in DB
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
-	var id int
+	var id int64
 
 	hall, _ := i.(*Resource)
 	// CHECK ERROR -> hall, ok := i.(*Resource)
@@ -48,7 +48,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(int64(id))
+	return r.Retrieve(id)
 }
 
 // Retrieve Hall from DB
@@ -73,7 +73,9 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	}
 
 	if err != nil {
-		return nil, err
+		// TODO logs
+
+		return nil, internal.ErrInternalFailure // TODO do the same EVERYWHERE
 	}
 
 	return &res, nil
@@ -121,6 +123,7 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
+
 		if err != nil {
 			return nil, err
 		}

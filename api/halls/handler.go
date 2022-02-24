@@ -56,16 +56,13 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 // Create get json and creates new Hall
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
-
-	response.Header().Set("Content-Type", "application/json")
-
 	var hall repo.Resource
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
 	if err != nil {
-		// TODO logging
+		// TODO logging ZAP
 
-		response.WriteHeader(http.StatusBadGateway) // TODO StatusBadGateway ???...
+		response.WriteHeader(http.StatusBadGateway) // TODO StatusBadGateway ???... 400
 		return
 	}
 
@@ -115,13 +112,18 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusBadGateway)
 	}
 
-	dbhall, err := h.s.Retrieve(int64(id))
+	resource, err := h.s.Retrieve(int64(id))
 	if err != nil {
 		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	res, err := json.Marshal(dbhall)
+	if resource == nil {
+		response.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	res, err := json.Marshal(resource)
 	if err != nil {
 		log.Fatal(err)
 	}
