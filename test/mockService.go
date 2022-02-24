@@ -10,11 +10,11 @@ type MockService struct {
 	ExpectedArray  []internal.Identifiable
 }
 
-func (s *MockService) Create(r internal.Identifiable) (internal.Identifiable, error) {
+func (s *MockService) Create(_ internal.Identifiable) (internal.Identifiable, error) {
 	return s.ExpectedResult, s.ExpectedError
 }
 
-func (s *MockService) Retrieve(id int64) (internal.Identifiable, error) {
+func (s *MockService) Retrieve(_ int64) (internal.Identifiable, error) {
 	return s.ExpectedResult, s.ExpectedError
 }
 
@@ -23,6 +23,6 @@ func (s *MockService) RetrieveAll() ([]internal.Identifiable, error) {
 	return s.ExpectedArray, s.ExpectedError
 }
 
-func (s *MockService) Delete(r internal.Identifiable) error {
+func (s *MockService) Delete(_ int64) error {
 	return s.ExpectedError
 }

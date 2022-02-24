@@ -63,23 +63,26 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
 	if err != nil {
-		response.WriteHeader(http.StatusBadGateway)
+		// TODO logging
+
+		response.WriteHeader(http.StatusBadGateway) // TODO StatusBadGateway ???...
 		return
 	}
 
-	dbhall, err := h.s.Create(&hall)
+	resource, err := h.s.Create(&hall)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
-	res, err := json.Marshal(dbhall)
+	body, err := json.Marshal(resource)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	response.Header().Set("Content-Type", "application/json")
 
-	_, err = response.Write(res)
+	_, err = response.Write(body)
 	if err != nil {
 		log.Fatal(err)
 	}

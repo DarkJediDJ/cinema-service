@@ -28,6 +28,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 	hall, _ := i.(*Resource)
 	// CHECK ERROR -> hall, ok := i.(*Resource)
+	// TODO the above!
 
 	query := sq.
 		Insert("halls").
