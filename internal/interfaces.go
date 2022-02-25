@@ -24,5 +24,5 @@ type Service interface {
 }
 
 type Identifiable interface {
-	GID() int
+	GID() int64
 }

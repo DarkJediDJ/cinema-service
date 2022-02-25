@@ -45,7 +45,7 @@ func TestCreate(t *testing.T) {
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
-					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+					WillReturnError(internal.ErrInternalFailure)
 			},
 		},
 		{
@@ -70,9 +70,7 @@ func TestCreate(t *testing.T) {
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
-					WillReturnRows(sqlm2.
-						NewRows([]string{"id"}).
-						AddRow(hall.ID)).WillReturnError(fmt.Errorf("unable to retrieve Resource"))
+					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
 		},
 	}
@@ -101,7 +99,6 @@ func TestRetrieve(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
-		id             int64
 	}{
 		{
 			name:           "success",
@@ -114,7 +111,6 @@ func TestRetrieve(t *testing.T) {
 						NewRows([]string{"vip", "id", "seats"}).
 						AddRow(hall.VIP, hall.ID, hall.Seats))
 			},
-			id: int64(hall.ID),
 		},
 		{
 			name:           "failed, database error",
@@ -122,9 +118,8 @@ func TestRetrieve(t *testing.T) {
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
-					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+					WillReturnError(internal.ErrInternalFailure)
 			},
-			id: int64(hall.ID),
 		},
 		{
 			name:           "failed, sql no rows error",
@@ -133,9 +128,8 @@ func TestRetrieve(t *testing.T) {
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
 					WillReturnRows(sqlm2.
-						NewRows([]string{}))
+						NewRows(nil))
 			},
-			id: 5,
 		},
 	}
 
@@ -144,7 +138,7 @@ func TestRetrieve(t *testing.T) {
 			repo := &Repository{DB: db}
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(tc.id)
+			res, err := repo.Retrieve(int64(hall.ID))
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -181,7 +175,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
-					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+					WillReturnError(internal.ErrInternalFailure)
 			},
 		},
 		{
@@ -190,7 +184,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedResult: []internal.Identifiable{},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
-				WillReturnRows(sqlm2.NewRows([]string{}))
+					WillReturnRows(sqlm2.NewRows([]string{}))
 			},
 		},
 	}
@@ -238,7 +232,7 @@ func TestDelete(t *testing.T) {
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectExec("DELETE FROM halls WHERE id = \\$1").
 					WithArgs(hall.ID).
-					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+					WillReturnError(internal.ErrInternalFailure)
 			},
 			id: int64(hall.ID),
 		},

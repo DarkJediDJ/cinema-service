@@ -4,8 +4,10 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
+	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
+	"github.com/darkjedidj/cinema-service/tools"
 )
 
 type Repository struct {
@@ -13,22 +15,31 @@ type Repository struct {
 }
 
 type Resource struct {
-	ID    int  `json:"ID"`
+	ID    int64  `json:"ID"`
 	VIP   bool `json:"VIP"`
 	Seats int  `json:"seats"`
 }
 
-func (r *Resource) GID() int {
+func (r *Resource) GID() int64 {
 	return r.ID
 }
+
+var logger = tools.NewLogger()
 
 // Create new Hall in DB
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
 	var id int64
 
-	hall, _ := i.(*Resource)
-	// CHECK ERROR -> hall, ok := i.(*Resource)
-	// TODO the above!
+	defer logger.Sync()
+
+	hall, ok := i.(*Resource)
+	if !ok {
+		logger.Info("Failed to create Hall object.",
+			zap.Bool("ok", ok),
+		)
+
+		return nil, internal.ErrInternalFailure
+	}
 
 	query := sq.
 		Insert("halls").
@@ -43,7 +54,9 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		Scan(&id)
 
 	if err != nil {
-		// log the actual error here
+		logger.Info("Failed to run Create hall query.",
+			zap.Error(err),
+		)
 
 		return nil, internal.ErrInternalFailure
 	}
@@ -54,6 +67,8 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 // Retrieve Hall from DB
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
+
+	defer logger.Sync()
 
 	query := sq.
 		Select("vip", "id", "seats").
@@ -69,13 +84,16 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 		Scan(&res.VIP, &res.ID, &res.Seats)
 
 	if err == sql.ErrNoRows {
+
 		return nil, nil
 	}
 
 	if err != nil {
-		// TODO logs
+		logger.Info("Failed to run Retrieve hall query.",
+			zap.Error(err),
+		)
 
-		return nil, internal.ErrInternalFailure // TODO do the same EVERYWHERE
+		return nil, internal.ErrInternalFailure
 	}
 
 	return &res, nil
@@ -83,6 +101,8 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 // Delete Hall in DB
 func (r *Repository) Delete(id int64) error {
+	defer logger.Sync()
+
 	query := sq.
 		Delete("halls").
 		Where(sq.Eq{
@@ -95,7 +115,11 @@ func (r *Repository) Delete(id int64) error {
 		Exec()
 
 	if err != nil {
-		return err
+		logger.Info("Failed to run Delete hall query.",
+			zap.Error(err),
+		)
+
+		return internal.ErrInternalFailure
 	}
 
 	return nil
@@ -103,6 +127,8 @@ func (r *Repository) Delete(id int64) error {
 
 // RetrieveAll halls from DB
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
+	defer logger.Sync()
+
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").
@@ -110,8 +136,13 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 		RunWith(r.DB)
 
 	rows, err := query.Query()
+
 	if err != nil {
-		return nil, err
+		logger.Info("Failed to run RetrieveAll halls query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	var data []*Resource
@@ -125,7 +156,11 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 		}
 
 		if err != nil {
-			return nil, err
+			logger.Info("Failed to scan rows into halls structures.",
+				zap.Error(err),
+			)
+
+			return nil, internal.ErrInternalFailure
 		}
 
 		data = append(data, res)
