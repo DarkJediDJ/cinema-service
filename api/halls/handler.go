@@ -61,6 +61,8 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	var hall repo.Resource
 
+	defer logger.Sync()
+
 	response.Header().Set("Content-Type", "application/json")
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
@@ -103,6 +105,8 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 // Delete get ID and deletes Hall with the same ID
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+	defer logger.Sync()
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -125,6 +129,8 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects Hall with the same ID
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	defer logger.Sync()
+
 	response.Header().Set("Content-Type", "application/json")
 
 	vars := mux.Vars(request)
@@ -173,6 +179,8 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all Halls
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	defer logger.Sync()
+
 	response.Header().Set("Content-Type", "application/json")
 
 	resource, err := h.s.RetrieveAll()

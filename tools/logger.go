@@ -7,7 +7,7 @@ import (
 )
 
 //NewLogger creates new structured zap logger
-func NewLogger() *zap.Logger{
+func NewLogger() *zap.Logger {
 
 	logger, err := zap.NewProduction()
 	if err != nil {

@@ -15,9 +15,9 @@ type Repository struct {
 }
 
 type Resource struct {
-	ID    int64  `json:"ID"`
-	VIP   bool `json:"VIP"`
-	Seats int  `json:"seats"`
+	ID    int64 `json:"ID"`
+	VIP   bool  `json:"VIP"`
+	Seats int   `json:"seats"`
 }
 
 func (r *Resource) GID() int64 {
