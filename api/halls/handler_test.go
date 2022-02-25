@@ -1,11 +1,13 @@
 package halls
 
 import (
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
 
+	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
 
 	"github.com/darkjedidj/cinema-service/internal"
@@ -64,22 +66,23 @@ func TestRetrieve(t *testing.T) {
 	testRetrieveCases := []struct {
 		name           string
 		mockService    *test.MockService
-		body           string
+		id             int64
 		expectedStatus int
 	}{
 		{
-			name: "failure: empty body",
+			name: "failure: no rows",
 			mockService: &test.MockService{
-				ExpectedResult: &hall.Resource{ID: 15, VIP: true, Seats: 15},
+				ExpectedResult: nil,
 			},
-			expectedStatus: http.StatusBadGateway,
+			id:             20,
+			expectedStatus: http.StatusNotFound,
 		},
 		{
 			name: "success",
 			mockService: &test.MockService{
 				ExpectedResult: &hall.Resource{ID: 15, VIP: true, Seats: 15},
 			},
-			body:           `{"VIP": true, "seats": 10}`,
+			id:             15,
 			expectedStatus: http.StatusOK,
 		},
 		{
@@ -87,7 +90,7 @@ func TestRetrieve(t *testing.T) {
 			mockService: &test.MockService{
 				ExpectedError: internal.ErrInternalFailure,
 			},
-			body:           `{"VIP": true, "seats": 123}`,
+			id:             15,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
 	}
@@ -95,12 +98,109 @@ func TestRetrieve(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
-			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
+			vars := map[string]string{
+				"id": fmt.Sprintf("%d", tc.id),
+			}
+
+			r := httptest.NewRequest(http.MethodGet, fmt.Sprintf("/%d", tc.id), nil)
+
+			r = mux.SetURLVars(r, vars)
+
+			r.Header.Set("Content-Type", "application/json")
+
+			(&Handler{s: tc.mockService}).HandleID(w, r)
+
+			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+			assert.Equal(t, tc.expectedStatus, w.Code)
+
+		})
+	}
+}
+
+func TestRetrieveAll(t *testing.T) {
+	testRetrieveAllCases := []struct {
+		name           string
+		mockService    *test.MockService
+		expectedStatus int
+	}{
+		{
+			name: "failure: no rows",
+			mockService: &test.MockService{
+				ExpectedArray: nil,
+			},
+			expectedStatus: http.StatusNotFound,
+		},
+		{
+			name: "success",
+			mockService: &test.MockService{
+				ExpectedArray: []internal.Identifiable{&hall.Resource{ID: 15, VIP: true, Seats: 15}},
+			},
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "failure: DB error",
+			mockService: &test.MockService{
+				ExpectedError: internal.ErrInternalFailure,
+			},
+			expectedStatus: http.StatusUnprocessableEntity,
+		},
+	}
+	for _, tc := range testRetrieveAllCases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+
+			r := httptest.NewRequest(http.MethodGet, "/", nil)
 			r.Header.Set("Content-Type", "application/json")
 
 			(&Handler{s: tc.mockService}).Handle(w, r)
 
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
+			assert.Equal(t, tc.expectedStatus, w.Code)
+
+		})
+	}
+}
+
+func TestDelete(t *testing.T) {
+	testDeleteCases := []struct {
+		name           string
+		mockService    *test.MockService
+		id             int64
+		expectedStatus int
+	}{
+		{
+			name: "success",
+			mockService: &test.MockService{
+				ExpectedResult: nil,
+			},
+			id:             15,
+			expectedStatus: http.StatusOK,
+		},
+		{
+			name: "failure: DB error",
+			mockService: &test.MockService{
+				ExpectedError: internal.ErrInternalFailure,
+			},
+			id:             15,
+			expectedStatus: http.StatusUnprocessableEntity,
+		},
+	}
+	for _, tc := range testDeleteCases {
+		t.Run(tc.name, func(t *testing.T) {
+			w := httptest.NewRecorder()
+
+			vars := map[string]string{
+				"id": fmt.Sprintf("%d", tc.id),
+			}
+
+			r := httptest.NewRequest(http.MethodDelete, fmt.Sprintf("/%d", tc.id), nil)
+
+			r = mux.SetURLVars(r, vars)
+
+			r.Header.Set("Content-Type", "application/json")
+
+			(&Handler{s: tc.mockService}).HandleID(w, r)
+
 			assert.Equal(t, tc.expectedStatus, w.Code)
 
 		})

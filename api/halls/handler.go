@@ -125,6 +125,8 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects Hall with the same ID
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -158,8 +160,6 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	response.Header().Set("Content-Type", "application/json")
-
 	_, err = response.Write(body)
 	if err != nil {
 		logger.Info("Failed to write hall response.",
@@ -173,10 +173,16 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all Halls
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-Type", "application/json")
 
 	resource, err := h.s.RetrieveAll()
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
+		return
+	}
+
+	if resource == nil {
+		response.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -189,8 +195,6 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-
-	response.Header().Set("Content-Type", "application/json")
 
 	_, err = response.Write(body)
 	if err != nil {
