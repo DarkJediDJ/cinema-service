@@ -18,8 +18,8 @@ type App struct {
 func (a *App) New(db *sql.DB, l *zap.Logger) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db,l).HandleID)
-	myRouter.HandleFunc("/v1/halls", halls.Init(db,l).Handle)
+	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db, l).HandleID)
+	myRouter.HandleFunc("/v1/halls", halls.Init(db, l).Handle)
 	a.Router = myRouter
 }
 

@@ -120,7 +120,7 @@ func (r *Repository) Delete(id int64) error {
 
 // RetrieveAll halls from DB
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
-	
+
 	query := sq.
 		Select("vip", "id", "seats").
 		From("halls").

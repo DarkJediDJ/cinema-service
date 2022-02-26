@@ -36,6 +36,6 @@ func main() {
 	}
 
 	defer db.Close()
-	a.New(db,logger)
+	a.New(db, logger)
 	a.Run(port)
 }

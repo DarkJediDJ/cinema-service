@@ -106,14 +106,14 @@ func TestRetrieve(t *testing.T) {
 		},
 	}
 	for _, tc := range testRetrieveCases {
-		
+
 		logger, err := zap.NewProduction()
 		if err != nil {
 			log.Fatalf("can't initialize zap logger: %v", err)
 		}
 
 		defer logger.Sync()
-		
+
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
@@ -165,14 +165,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 	}
 	for _, tc := range testRetrieveAllCases {
-		
+
 		logger, err := zap.NewProduction()
 		if err != nil {
 			log.Fatalf("can't initialize zap logger: %v", err)
 		}
 
 		defer logger.Sync()
-		
+
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
@@ -194,7 +194,7 @@ func TestDelete(t *testing.T) {
 		mockService    *test.MockService
 		id             int64
 		expectedStatus int
-		prepare func() *zap.Logger
+		prepare        func() *zap.Logger
 	}{
 		{
 			name: "success",
@@ -222,7 +222,7 @@ func TestDelete(t *testing.T) {
 			}
 
 			defer logger.Sync()
-			
+
 			w := httptest.NewRecorder()
 
 			vars := map[string]string{
