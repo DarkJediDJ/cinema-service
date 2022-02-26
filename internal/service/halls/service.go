@@ -4,18 +4,22 @@ import (
 	"database/sql"
 
 	"github.com/darkjedidj/cinema-service/internal"
+	"go.uber.org/zap"
 
 	h "github.com/darkjedidj/cinema-service/internal/repository/halls"
 )
 
 type Service struct {
 	repo *h.Repository
+	log  *zap.Logger
 }
 
 // Init returns Service object
-func Init(db *sql.DB) *Service {
+func Init(db *sql.DB, l *zap.Logger) *Service {
+
 	return &Service{
-		repo: &h.Repository{DB: db},
+		repo: &h.Repository{DB: db, Log: l},
+		log:  l,
 	}
 }
 

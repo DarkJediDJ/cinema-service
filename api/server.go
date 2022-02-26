@@ -7,6 +7,7 @@ import (
 
 	"github.com/darkjedidj/cinema-service/api/halls"
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 )
 
 type App struct {
@@ -14,11 +15,11 @@ type App struct {
 }
 
 // New creates router with handler
-func (a *App) New(db *sql.DB) {
+func (a *App) New(db *sql.DB, l *zap.Logger) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db).HandleID)
-	myRouter.HandleFunc("/v1/halls", halls.Init(db).Handle)
+	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db,l).HandleID)
+	myRouter.HandleFunc("/v1/halls", halls.Init(db,l).Handle)
 	a.Router = myRouter
 }
 

@@ -2,6 +2,7 @@ package halls
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -9,6 +10,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
 	hall "github.com/darkjedidj/cinema-service/internal/repository/halls"
@@ -47,13 +49,22 @@ func TestCreate(t *testing.T) {
 		},
 	}
 	for _, tc := range testCreateCases {
+
 		t.Run(tc.name, func(t *testing.T) {
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+
 			w := httptest.NewRecorder()
 
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
 			r.Header.Set("Content-Type", "application/json")
 
-			(&Handler{s: tc.mockService}).Handle(w, r)
+			(&Handler{s: tc.mockService, log: logger}).Handle(w, r)
 
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 			assert.Equal(t, tc.expectedStatus, w.Code)
@@ -95,6 +106,14 @@ func TestRetrieve(t *testing.T) {
 		},
 	}
 	for _, tc := range testRetrieveCases {
+		
+		logger, err := zap.NewProduction()
+		if err != nil {
+			log.Fatalf("can't initialize zap logger: %v", err)
+		}
+
+		defer logger.Sync()
+		
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
@@ -146,6 +165,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 	}
 	for _, tc := range testRetrieveAllCases {
+		
+		logger, err := zap.NewProduction()
+		if err != nil {
+			log.Fatalf("can't initialize zap logger: %v", err)
+		}
+
+		defer logger.Sync()
+		
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
 
@@ -167,6 +194,7 @@ func TestDelete(t *testing.T) {
 		mockService    *test.MockService
 		id             int64
 		expectedStatus int
+		prepare func() *zap.Logger
 	}{
 		{
 			name: "success",
@@ -187,6 +215,14 @@ func TestDelete(t *testing.T) {
 	}
 	for _, tc := range testDeleteCases {
 		t.Run(tc.name, func(t *testing.T) {
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+			
 			w := httptest.NewRecorder()
 
 			vars := map[string]string{

@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/darkjedidj/cinema-service/internal"
+	"go.uber.org/zap"
 
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
@@ -77,7 +78,15 @@ func TestCreate(t *testing.T) {
 
 	for _, tc := range testCreateCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
 			res, err := repo.Create(hall)
@@ -135,7 +144,15 @@ func TestRetrieve(t *testing.T) {
 
 	for _, tc := range testRetrieveCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
 			res, err := repo.Retrieve(int64(hall.ID))
@@ -191,7 +208,15 @@ func TestRetrieveAll(t *testing.T) {
 
 	for _, tc := range testRetrieveAllCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
 			res, err := repo.RetrieveAll()
@@ -240,10 +265,18 @@ func TestDelete(t *testing.T) {
 
 	for _, tc := range testDeleteCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer logger.Sync()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			err := repo.Delete(tc.id)
+			err = repo.Delete(tc.id)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}

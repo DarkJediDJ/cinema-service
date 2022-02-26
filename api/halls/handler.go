@@ -13,21 +13,20 @@ import (
 
 	repo "github.com/darkjedidj/cinema-service/internal/repository/halls"
 	service "github.com/darkjedidj/cinema-service/internal/service/halls"
-	"github.com/darkjedidj/cinema-service/tools"
 )
 
-var logger = tools.NewLogger()
-
 type Handler struct {
-	s internal.Service // Allows use service features
+	s   internal.Service // Allows use service features
+	log *zap.Logger
 }
 
-func Init(db *sql.DB) *Handler {
+func Init(db *sql.DB, l *zap.Logger) *Handler {
 
-	service := service.Init(db)
+	service := service.Init(db, l)
 
 	return &Handler{
-		s: service,
+		s:   service,
+		log: l,
 	}
 }
 
@@ -61,13 +60,11 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	var hall repo.Resource
 
-	defer logger.Sync()
-
 	response.Header().Set("Content-Type", "application/json")
 
 	err := json.NewDecoder(request.Body).Decode(&hall)
 	if err != nil {
-		logger.Info("Failed to decode hall json.",
+		h.log.Info("Failed to decode hall json.",
 			zap.Error(err),
 		)
 
@@ -83,7 +80,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		logger.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall hall structure.",
 			zap.Error(err),
 		)
 
@@ -93,7 +90,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		logger.Info("Failed to write hall response.",
+		h.log.Info("Failed to write hall response.",
 			zap.Error(err),
 		)
 
@@ -105,13 +102,12 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 // Delete get ID and deletes Hall with the same ID
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
-	defer logger.Sync()
 
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		logger.Info("Failed to parse hall id.",
+		h.log.Info("Failed to parse hall id.",
 			zap.Error(err),
 		)
 
@@ -129,7 +125,6 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects Hall with the same ID
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
-	defer logger.Sync()
 
 	response.Header().Set("Content-Type", "application/json")
 
@@ -137,7 +132,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		logger.Info("Failed to parse hall id.",
+		h.log.Info("Failed to parse hall id.",
 			zap.Error(err),
 		)
 
@@ -158,7 +153,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		logger.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall hall structure.",
 			zap.Error(err),
 		)
 
@@ -168,7 +163,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		logger.Info("Failed to write hall response.",
+		h.log.Info("Failed to write hall response.",
 			zap.Error(err),
 		)
 
@@ -179,8 +174,6 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all Halls
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
-	defer logger.Sync()
-
 	response.Header().Set("Content-Type", "application/json")
 
 	resource, err := h.s.RetrieveAll()
@@ -196,7 +189,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		logger.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall hall structure.",
 			zap.Error(err),
 		)
 
@@ -206,7 +199,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		logger.Info("Failed to write hall response.",
+		h.log.Info("Failed to write hall response.",
 			zap.Error(err),
 		)
 
