@@ -7,6 +7,8 @@ import (
 
 	"github.com/darkjedidj/cinema-service/api/halls"
 	"github.com/gorilla/mux"
+	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
+	_ "github.com/swaggo/http-swagger/example/gorilla/docs"
 	"go.uber.org/zap"
 )
 
@@ -20,6 +22,9 @@ func (a *App) New(db *sql.DB, l *zap.Logger) {
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/halls", halls.Init(db, l).Handle)
+	myRouter.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
+		httpSwagger.URL("http://localhost:8085/swagger/doc.json"), //The url pointing to API definition
+	))
 	a.Router = myRouter
 }
 
