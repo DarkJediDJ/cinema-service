@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
+	_ "github.com/darkjedidj/cinema-service/docs"
 	"github.com/darkjedidj/cinema-service/internal"
 	"go.uber.org/zap"
 
@@ -57,6 +58,15 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 }
 
 // Create get json and creates new Hall
+// Create godoc
+// @Summary      Create hall
+// @Description  Creates hall and returns created object
+// @Tags         halls
+//@Param         Body  body  internal.Identifiable  true  "The body to create a hall"
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /halls [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	var hall repo.Resource
 
@@ -101,6 +111,15 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 }
 
 // Delete get ID and deletes Hall with the same ID
+// Delete godoc
+// @Summary      Delete hall
+// @Description  Deletes hall
+// @Param id path integer true "User ID"
+// @Tags         halls
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /halls/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 	vars := mux.Vars(request)
@@ -124,6 +143,15 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 }
 
 // Get ID and selects Hall with the same ID
+// Get godoc
+// @Summary      Get hall
+// @Description  Gets hall
+// @Param id path integer true "User ID"
+// @Tags         halls
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /halls/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("Content-Type", "application/json")
@@ -173,9 +201,16 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 }
 
 // GetAll selects all Halls
+// GetAll godoc
+// @Summary      List halls
+// @Description  get halls
+// @Tags         halls
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}  []internal.Identifiable
+// @Router       /halls [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-
 	resource, err := h.s.RetrieveAll()
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)

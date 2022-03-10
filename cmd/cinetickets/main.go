@@ -7,28 +7,28 @@ import (
 	"os"
 
 	server "github.com/darkjedidj/cinema-service/api"
+	_ "github.com/darkjedidj/cinema-service/docs"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
-
 )
 
 const port = ":8085"
 
-// @title Swagger Example API
-// @version 1.0
-// @description This is a sample server Petstore server.
-// @termsOfService http://swagger.io/terms/
+// @title           Cinetickets API
+// @version         1.0
+// @description     This is a sample cinetickets server.
+// @termsOfService  http://swagger.io/terms/
 
-// @contact.name API Support
-// @contact.url http://www.swagger.io/support
-// @contact.email support@swagger.io
+// @contact.name   API Support
+// @contact.url    http://www.swagger.io/support
+// @contact.email  support@swagger.io
 
-// @license.name Apache 2.0
-// @license.url http://www.apache.org/licenses/LICENSE-2.0.html
+// @license.name  Apache 2.0
+// @license.url   http://www.apache.org/licenses/LICENSE-2.0.html
 
-// @host 172.28.72.82
-// @BasePath /v1
+// @host      localhost:8085
+// @BasePath  /v1
 
 func main() {
 

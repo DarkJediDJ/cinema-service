@@ -8,7 +8,6 @@ import (
 	"github.com/darkjedidj/cinema-service/api/halls"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
-	_ "github.com/swaggo/http-swagger/example/gorilla/docs"
 	"go.uber.org/zap"
 )
 

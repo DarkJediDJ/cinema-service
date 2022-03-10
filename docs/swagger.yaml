@@ -1,0 +1,92 @@
+basePath: /v1
+host: localhost:8085
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample cinetickets server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Cinetickets API
+  version: "1.0"
+paths:
+  /halls:
+    get:
+      consumes:
+      - application/json
+      description: get halls
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+      summary: List halls
+      tags:
+      - halls
+    post:
+      consumes:
+      - application/json
+      description: Creates hall and returns created object
+      parameters:
+      - description: The body to create a hall
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create hall
+      tags:
+      - halls
+  /halls/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes hall
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete hall
+      tags:
+      - halls
+    get:
+      consumes:
+      - application/json
+      description: Gets hall
+      parameters:
+      - description: User ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get hall
+      tags:
+      - halls
+swagger: "2.0"

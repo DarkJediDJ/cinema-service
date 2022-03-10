@@ -7,7 +7,6 @@ require (
 	github.com/joho/godotenv v1.4.0
 	github.com/lib/pq v1.10.4
 	github.com/swaggo/http-swagger v1.2.5
-	github.com/swaggo/http-swagger/example/gorilla v0.0.0-20220206174302-25e73d277c44
 	github.com/swaggo/swag v1.8.0
 	go.uber.org/zap v1.21.0
 )
