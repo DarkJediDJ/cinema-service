@@ -52,6 +52,11 @@ func main() {
 	}
 
 	defer db.Close()
+	defer func() {
+		if err := logger.Sync(); err != nil {
+			fmt.Println(err)
+		}
+	}()
 	a.New(db, logger)
 	a.Run(port)
 }

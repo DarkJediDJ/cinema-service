@@ -57,7 +57,11 @@ func TestCreate(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			w := httptest.NewRecorder()
 
@@ -112,7 +116,11 @@ func TestRetrieve(t *testing.T) {
 			log.Fatalf("can't initialize zap logger: %v", err)
 		}
 
-		defer logger.Sync()
+		defer func() {
+			if err := logger.Sync(); err != nil {
+				fmt.Println(err)
+			}
+		}()
 
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -171,7 +179,11 @@ func TestRetrieveAll(t *testing.T) {
 			log.Fatalf("can't initialize zap logger: %v", err)
 		}
 
-		defer logger.Sync()
+		defer func() {
+			if err := logger.Sync(); err != nil {
+				fmt.Println(err)
+			}
+		}()
 
 		t.Run(tc.name, func(t *testing.T) {
 			w := httptest.NewRecorder()
@@ -221,7 +233,11 @@ func TestDelete(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			w := httptest.NewRecorder()
 

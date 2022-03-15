@@ -84,7 +84,11 @@ func TestCreate(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			repo := &Repository{DB: db, Log: logger}
 
@@ -150,7 +154,11 @@ func TestRetrieve(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			repo := &Repository{DB: db, Log: logger}
 
@@ -214,7 +222,11 @@ func TestRetrieveAll(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			repo := &Repository{DB: db, Log: logger}
 
@@ -271,7 +283,11 @@ func TestDelete(t *testing.T) {
 				log.Fatalf("can't initialize zap logger: %v", err)
 			}
 
-			defer logger.Sync()
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
 
 			repo := &Repository{DB: db, Log: logger}
 
