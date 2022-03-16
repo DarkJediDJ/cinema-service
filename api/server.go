@@ -20,8 +20,8 @@ type App struct {
 func (a *App) New(db *sql.DB, l *zap.Logger) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/v1/movies/{id}", movies.Init(db).HandleID)
-	myRouter.HandleFunc("/v1/movies", movies.Init(db).Handle)
+	myRouter.HandleFunc("/v1/movies/{id}", movies.Init(db, l).HandleID)
+	myRouter.HandleFunc("/v1/movies", movies.Init(db, l).Handle)
 	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/halls", halls.Init(db, l).Handle)
 	myRouter.PathPrefix("/swagger/").Handler(httpSwagger.Handler(

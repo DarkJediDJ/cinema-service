@@ -2,58 +2,41 @@ package movies
 
 import (
 	"database/sql"
-	"errors"
-	"time"
 
+	"github.com/darkjedidj/cinema-service/internal"
 	h "github.com/darkjedidj/cinema-service/internal/repository/movies"
+	"go.uber.org/zap"
 )
 
 type Service struct {
 	repo *h.Repository
+	log  *zap.Logger
 }
 
-const minMinutes = 30
-const maxMinutes = 350
-const minLetters = 0
-const maxLetters = 50
+func Init(db *sql.DB, l *zap.Logger) *Service {
 
-// Init returns Service object
-func Init(db *sql.DB) *Service {
 	return &Service{
-		repo: &h.Repository{DB: db},
+		repo: &h.Repository{DB: db, Log: l},
+		log:  l,
 	}
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(movie h.Resource) (*h.Resource, error) {
-	duration, err := time.ParseDuration(movie.Duration)
-
-	if err != nil {
-		return nil, err
-	}
-
-	if duration.Minutes() < minMinutes || duration.Minutes() > maxMinutes {
-		return nil, errors.New("duration of movie is incorrect")
-	}
-
-	if len(movie.Name) <= minLetters || len(movie.Name) > maxLetters {
-		return nil, errors.New("name of movie is incorrect")
-	}
-
-	return s.repo.Create(movie)
+func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error) {
+	return s.repo.Create(r)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (*h.Resource, error) {
-	return s.repo.Retrieve(int64(id))
+func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
+	return s.repo.Retrieve(id)
 }
 
 // RetriveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]*h.Resource, error) {
+func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
 	return s.repo.RetrieveAll()
 }
 
 // Delete logic layer for repository method
 func (s *Service) Delete(id int64) error {
-	return s.repo.Delete(int64(id))
+	return s.repo.Delete(id)
 }

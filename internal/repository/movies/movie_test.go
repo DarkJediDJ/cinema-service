@@ -9,6 +9,7 @@ import (
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/darkjedidj/cinema-service/internal"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
 var movie = &Resource{
@@ -35,7 +36,7 @@ func TestCreate(t *testing.T) {
 	testCreateCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
@@ -69,19 +70,29 @@ func TestCreate(t *testing.T) {
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
-					WillReturnRows(sqlm2.
-						NewRows([]string{"id"}).
-						AddRow(movie.ID)).WillReturnError(internal.ErrInternalFailure)
+					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
 		},
 	}
 
 	for _, tc := range testCreateCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			res, err := repo.Create(*movie)
+			res, err := repo.Create(movie)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -98,7 +109,7 @@ func TestRetrieve(t *testing.T) {
 	testRetrieveCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 		id             int64
 	}{
@@ -132,7 +143,7 @@ func TestRetrieve(t *testing.T) {
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies WHERE id = \\$1").
 					WillReturnRows(sqlm2.
-						NewRows([]string{}))
+						NewRows(nil))
 			},
 			id: 5,
 		},
@@ -140,10 +151,22 @@ func TestRetrieve(t *testing.T) {
 
 	for _, tc := range testRetrieveCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(tc.id)
+			res, err := repo.Retrieve(movie.ID)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -160,13 +183,13 @@ func TestRetrieveAll(t *testing.T) {
 	testRetrieveAllCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult []*Resource
+		expectedResult []internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: []*Resource{movie},
+			expectedResult: []internal.Identifiable{movie},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies").
 					WillReturnRows(sqlm2.
@@ -186,7 +209,7 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			name:           "failed, sql no rows error",
 			expectedError:  nil,
-			expectedResult: nil,
+			expectedResult: []internal.Identifiable{},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies").
 					WillReturnRows(sqlm2.NewRows([]string{}))
@@ -196,11 +219,22 @@ func TestRetrieveAll(t *testing.T) {
 
 	for _, tc := range testRetrieveAllCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
 			res, err := repo.RetrieveAll()
-			fmt.Print(res)
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
 		})
@@ -216,7 +250,7 @@ func TestDelete(t *testing.T) {
 	testDeleteCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 		id             int64
 	}{
@@ -246,10 +280,22 @@ func TestDelete(t *testing.T) {
 
 	for _, tc := range testDeleteCases {
 		t.Run(tc.name, func(t *testing.T) {
-			repo := &Repository{DB: db}
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			err := repo.Delete(tc.id)
+			err = repo.Delete(tc.id)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}

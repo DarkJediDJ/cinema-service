@@ -1,4 +1,4 @@
-package halls
+package movies
 
 import (
 	"database/sql"
@@ -6,14 +6,12 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "github.com/darkjedidj/cinema-service/docs"
-	"github.com/darkjedidj/cinema-service/internal"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
-	"github.com/gorilla/mux"
-
-	repo "github.com/darkjedidj/cinema-service/internal/repository/halls"
-	service "github.com/darkjedidj/cinema-service/internal/service/halls"
+	"github.com/darkjedidj/cinema-service/internal"
+	repo "github.com/darkjedidj/cinema-service/internal/repository/movies"
+	service "github.com/darkjedidj/cinema-service/internal/service/movies"
 )
 
 type Handler struct {
@@ -36,9 +34,9 @@ func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) 
 
 	switch request.Method {
 	case http.MethodGet:
-		h.Get(response, request) // GET BASE_URL/v1/halls/{id}
+		h.Get(response, request) // GET BASE_URL/v1/movies/{id}
 	case http.MethodDelete:
-		h.Delete(response, request) // DELETE BASE_URL/v1/halls/{id}
+		h.Delete(response, request) // DELETE BASE_URL/v1/movies/{id}
 	default:
 		response.WriteHeader(http.StatusBadGateway)
 	}
@@ -49,32 +47,32 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
 	case http.MethodGet:
-		h.GetAll(response, request) // GET BASE_URL/v1/halls
+		h.GetAll(response, request) // GET BASE_URL/v1/movies
 	case http.MethodPost:
-		h.Create(response, request) // POST BASE_URL/v1/halls
+		h.Create(response, request) // POST BASE_URL/v1/movies
 	default:
 		response.WriteHeader(http.StatusBadGateway)
 	}
 }
 
-// Create get json and creates new Hall
+// Create get json and creates new Movie
 // Create godoc
-// @Summary      Create hall
-// @Description  Creates hall and returns created object
-// @Tags         Halls
-//@Param         Body  body  internal.Identifiable  true  "The body to create a hall"
+// @Summary      Create movie
+// @Description  Creates movie and returns created object
+// @Tags         Movies
+//@Param         Body  body  internal.Identifiable  true  "The body to create a movie"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /halls [post]
+// @Router       /movies [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
-	var hall repo.Resource
+	var movie repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
 
-	err := json.NewDecoder(request.Body).Decode(&hall)
+	err := json.NewDecoder(request.Body).Decode(&movie)
 	if err != nil {
-		h.log.Info("Failed to decode hall json.",
+		h.log.Info("Failed to decode movie json.",
 			zap.Error(err),
 		)
 
@@ -82,7 +80,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Create(&hall)
+	resource, err := h.s.Create(&movie)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -90,7 +88,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall movie structure.",
 			zap.Error(err),
 		)
 
@@ -100,7 +98,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write hall response.",
+		h.log.Info("Failed to write movie response.",
 			zap.Error(err),
 		)
 
@@ -110,23 +108,23 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 }
 
-// Delete get ID and deletes Hall with the same ID
+// Delete get ID and deletes movie with the same ID
 // Delete godoc
-// @Summary      Delete hall
-// @Description  Deletes hall
-// @Param id path integer true "Hall ID"
-// @Tags         Halls
+// @Summary      Delete movie
+// @Description  Deletes movie
+// @Param id path integer true "Movie ID"
+// @Tags         Movies
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /halls/{id} [delete]
+// @Router       /movies/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse hall id.",
+		h.log.Info("Failed to parse movie id.",
 			zap.Error(err),
 		)
 
@@ -142,16 +140,16 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	response.WriteHeader(http.StatusOK)
 }
 
-// Get ID and selects Hall with the same ID
+// Get ID and selects movie with the same ID
 // Get godoc
-// @Summary      Get hall
-// @Description  Gets hall
-// @Param id path integer true "Hall ID"
-// @Tags         Halls
+// @Summary      Get movie
+// @Description  Gets movie
+// @Param id path integer true "Movie ID"
+// @Tags         Movies
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /halls/{id} [get]
+// @Router       /movies/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	response.Header().Set("Content-Type", "application/json")
@@ -160,7 +158,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse hall id.",
+		h.log.Info("Failed to parse movie id.",
 			zap.Error(err),
 		)
 
@@ -181,7 +179,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall movie structure.",
 			zap.Error(err),
 		)
 
@@ -191,7 +189,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write hall response.",
+		h.log.Info("Failed to write movie response.",
 			zap.Error(err),
 		)
 
@@ -200,15 +198,15 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetAll selects all Halls
+// GetAll selects all movies
 // GetAll godoc
-// @Summary      List halls
-// @Description  get halls
-// @Tags         Halls
+// @Summary      List movie
+// @Description  get movies
+// @Tags         Movies
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}  []internal.Identifiable
-// @Router       /halls [get]
+// @Router       /movies [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	resource, err := h.s.RetrieveAll()
@@ -224,7 +222,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall hall structure.",
+		h.log.Info("Failed to marshall movie structure.",
 			zap.Error(err),
 		)
 
@@ -234,7 +232,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write hall response.",
+		h.log.Info("Failed to write movie response.",
 			zap.Error(err),
 		)
 

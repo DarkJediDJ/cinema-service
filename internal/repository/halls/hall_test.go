@@ -163,7 +163,7 @@ func TestRetrieve(t *testing.T) {
 			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(int64(hall.ID))
+			res, err := repo.Retrieve(hall.ID)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -247,7 +247,7 @@ func TestDelete(t *testing.T) {
 	testDeleteCases := []struct {
 		name           string
 		expectedError  error
-		expectedResult *Resource
+		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
 		id             int64
 	}{

@@ -1,4 +1,4 @@
-package halls
+package movies
 
 import (
 	"fmt"
@@ -13,7 +13,7 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
-	hall "github.com/darkjedidj/cinema-service/internal/repository/halls"
+	movie "github.com/darkjedidj/cinema-service/internal/repository/movies"
 	"github.com/darkjedidj/cinema-service/test"
 )
 
@@ -27,16 +27,16 @@ func TestCreate(t *testing.T) {
 		{
 			name: "failure: empty body",
 			mockService: &test.MockService{
-				ExpectedResult: &hall.Resource{ID: 15, VIP: true, Seats: 15},
+				ExpectedResult: &movie.Resource{ID: 15, Name: "Harry Potter", Duration: "2h15m"},
 			},
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "success",
 			mockService: &test.MockService{
-				ExpectedResult: &hall.Resource{ID: 15, VIP: true, Seats: 15},
+				ExpectedResult: &movie.Resource{ID: 15, Name: "Harry Potter", Duration: "2h15m"},
 			},
-			body:           `{"VIP": true, "seats": 15}`,
+			body:           `{"Name": "Harry Potter", "Duration": "2h15m"}`,
 			expectedStatus: http.StatusOK,
 		},
 		{
@@ -44,7 +44,7 @@ func TestCreate(t *testing.T) {
 			mockService: &test.MockService{
 				ExpectedError: internal.ErrInternalFailure,
 			},
-			body:           `{"VIP": true, "seats": 123}`,
+			body:           `{"Name": "Harry Potter", "Duration": "2h15m"}`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
 	}
@@ -95,7 +95,7 @@ func TestRetrieve(t *testing.T) {
 		{
 			name: "success",
 			mockService: &test.MockService{
-				ExpectedResult: &hall.Resource{ID: 15, VIP: true, Seats: 15},
+				ExpectedResult: &movie.Resource{ID: 15, Name: "Harry Potter", Duration: "2h15m"},
 			},
 			id:             15,
 			expectedStatus: http.StatusOK,
@@ -160,7 +160,7 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			name: "success",
 			mockService: &test.MockService{
-				ExpectedArray: []internal.Identifiable{&hall.Resource{ID: 15, VIP: true, Seats: 15}},
+				ExpectedArray: []internal.Identifiable{&movie.Resource{ID: 15, Name: "Harry Potter", Duration: "2h15m"}},
 			},
 			expectedStatus: http.StatusOK,
 		},

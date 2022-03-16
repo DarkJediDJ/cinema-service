@@ -4,22 +4,36 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
+	"github.com/darkjedidj/cinema-service/internal"
+	"go.uber.org/zap"
 )
 
 type Repository struct {
-	DB *sql.DB
+	DB  *sql.DB
+	Log *zap.Logger
 }
 
 type Resource struct {
-	ID       int    `json:"ID"`
+	ID       int64  `json:"ID"`
 	Name     string `json:"Name"`
 	Duration string `json:"Duration"`
 }
 
-// Create new Movie in DB
-func (r *Repository) Create(movie Resource) (*Resource, error) {
-	var id int
+func (r *Resource) GID() int64 {
+	return r.ID
+}
 
+// Create new Movie in DB
+func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
+	var id int
+	movie, ok := i.(*Resource)
+	if !ok {
+		r.Log.Info("Failed to create movie object.",
+			zap.Bool("ok", ok),
+		)
+
+		return nil, internal.ErrInternalFailure
+	}
 	query := sq.
 		Insert("movies").
 		Columns("name", "duration").
@@ -33,14 +47,18 @@ func (r *Repository) Create(movie Resource) (*Resource, error) {
 		Scan(&id)
 
 	if err != nil {
-		return nil, err
+		r.Log.Info("Failed to run Create hall query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	return r.Retrieve(int64(id))
 }
 
 // Retrieve Movie from DB
-func (r *Repository) Retrieve(id int64) (*Resource, error) {
+func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
 	query := sq.
@@ -57,11 +75,16 @@ func (r *Repository) Retrieve(id int64) (*Resource, error) {
 		Scan(&res.Name, &res.Duration, &res.ID)
 
 	if err == sql.ErrNoRows {
+
 		return nil, nil
 	}
 
 	if err != nil {
-		return nil, err
+		r.Log.Info("Failed to run Retrieve movie query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	return &res, nil
@@ -81,14 +104,18 @@ func (r *Repository) Delete(id int64) error {
 		Exec()
 
 	if err != nil {
-		return err
+		r.Log.Info("Failed to run Delete movie query.",
+			zap.Error(err),
+		)
+
+		return internal.ErrInternalFailure
 	}
 
 	return nil
 }
 
 // RetrieveAll Movies from DB
-func (r *Repository) RetrieveAll() ([]*Resource, error) {
+func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	query := sq.
 		Select("name", "duration", "id").
 		From("movies").
@@ -97,7 +124,11 @@ func (r *Repository) RetrieveAll() ([]*Resource, error) {
 
 	rows, err := query.Query()
 	if err != nil {
-		return nil, err
+		r.Log.Info("Failed to run RetrieveAll movies query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	var data []*Resource
@@ -106,17 +137,26 @@ func (r *Repository) RetrieveAll() ([]*Resource, error) {
 		res := &Resource{}
 
 		err = rows.Scan(&res.Name, &res.Duration, &res.ID)
-
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 
 		if err != nil {
-			return nil, err
+			r.Log.Info("Failed to scan rows into movies structures.",
+				zap.Error(err),
+			)
+
+			return nil, internal.ErrInternalFailure
 		}
 
 		data = append(data, res)
 	}
 
-	return data, nil
+	var dataSlice []*Resource = data
+	var interfaceSlice []internal.Identifiable = make([]internal.Identifiable, len(dataSlice))
+	for i, d := range dataSlice {
+		interfaceSlice[i] = d
+	}
+
+	return interfaceSlice, nil
 }
