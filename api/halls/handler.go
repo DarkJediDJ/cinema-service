@@ -62,7 +62,7 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Summary      Create hall
 // @Description  Creates hall and returns created object
 // @Tags         Halls
-//@Param         Body  body  internal.Identifiable  true  "The body to create a hall"
+// @Param         Body  body  internal.Identifiable  true  "The body to create a hall"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
@@ -114,7 +114,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 // Delete godoc
 // @Summary      Delete hall
 // @Description  Deletes hall
-// @Param id path integer true "Hall ID"
+// @Param        id  path  integer  true  "Hall ID"
 // @Tags         Halls
 // @Accept       json
 // @Produce      json
@@ -146,7 +146,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 // Get godoc
 // @Summary      Get hall
 // @Description  Gets hall
-// @Param id path integer true "Hall ID"
+// @Param        id  path  integer  true  "Hall ID"
 // @Tags         Halls
 // @Accept       json
 // @Produce      json

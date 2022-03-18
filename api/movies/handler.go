@@ -60,7 +60,7 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Summary      Create movie
 // @Description  Creates movie and returns created object
 // @Tags         Movies
-//@Param         Body  body  internal.Identifiable  true  "The body to create a movie"
+// @Param         Body  body  internal.Identifiable  true  "The body to create a movie"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
@@ -112,7 +112,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 // Delete godoc
 // @Summary      Delete movie
 // @Description  Deletes movie
-// @Param id path integer true "Movie ID"
+// @Param        id  path  integer  true  "Movie ID"
 // @Tags         Movies
 // @Accept       json
 // @Produce      json
@@ -144,7 +144,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 // Get godoc
 // @Summary      Get movie
 // @Description  Gets movie
-// @Param id path integer true "Movie ID"
+// @Param        id  path  integer  true  "Movie ID"
 // @Tags         Movies
 // @Accept       json
 // @Produce      json
