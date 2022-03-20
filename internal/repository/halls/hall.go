@@ -15,7 +15,7 @@ type Repository struct {
 	Log *zap.Logger
 }
 
-// Resource is a struct to store data about entity 
+// Resource is a struct to store data about entity
 type Resource struct {
 	ID    int64 `json:"ID"`
 	VIP   bool  `json:"VIP"`

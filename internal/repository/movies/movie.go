@@ -37,7 +37,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 		return nil, internal.ErrInternalFailure
 	}
-	
+
 	query := sq.
 		Insert("movies").
 		Columns("name", "duration").
