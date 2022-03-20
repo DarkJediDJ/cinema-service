@@ -9,11 +9,13 @@ import (
 	"github.com/darkjedidj/cinema-service/internal"
 )
 
+// Repository is a struct to store storage and logger connection
 type Repository struct {
 	DB  *sql.DB
 	Log *zap.Logger
 }
 
+// Resource is a struct to store data about entity 
 type Resource struct {
 	ID    int64 `json:"ID"`
 	VIP   bool  `json:"VIP"`
@@ -24,7 +26,7 @@ func (r *Resource) GID() int64 {
 	return r.ID
 }
 
-// Create new Hall in DB
+// Create new entity in storage
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
 	var id int64
 
@@ -60,7 +62,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 	return r.Retrieve(id)
 }
 
-// Retrieve Hall from DB
+// Retrieve entity from storage
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
@@ -93,7 +95,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	return &res, nil
 }
 
-// Delete Hall in DB
+// Delete entity in storage
 func (r *Repository) Delete(id int64) error {
 
 	query := sq.
@@ -118,7 +120,7 @@ func (r *Repository) Delete(id int64) error {
 	return nil
 }
 
-// RetrieveAll halls from DB
+// RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 
 	query := sq.

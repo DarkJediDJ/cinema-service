@@ -8,11 +8,13 @@ import (
 	"go.uber.org/zap"
 )
 
+// Repository is a struct to store DB and logger connection
 type Repository struct {
 	DB  *sql.DB
 	Log *zap.Logger
 }
 
+// Resource is a struct to store data about entity
 type Resource struct {
 	ID       int64  `json:"ID"`
 	Name     string `json:"Name"`
@@ -23,9 +25,10 @@ func (r *Resource) GID() int64 {
 	return r.ID
 }
 
-// Create new Movie in DB
+// Create new entity in storage
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
 	var id int
+
 	movie, ok := i.(*Resource)
 	if !ok {
 		r.Log.Info("Failed to create movie object.",
@@ -34,6 +37,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 		return nil, internal.ErrInternalFailure
 	}
+	
 	query := sq.
 		Insert("movies").
 		Columns("name", "duration").
@@ -57,7 +61,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 	return r.Retrieve(int64(id))
 }
 
-// Retrieve Movie from DB
+// Retrieve entity from storage
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
@@ -90,7 +94,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	return &res, nil
 }
 
-// Delete Movie in DB
+// Delete entity in storage
 func (r *Repository) Delete(id int64) error {
 	query := sq.
 		Delete("movies").
@@ -114,7 +118,7 @@ func (r *Repository) Delete(id int64) error {
 	return nil
 }
 
-// RetrieveAll Movies from DB
+// RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	query := sq.
 		Select("name", "duration", "id").

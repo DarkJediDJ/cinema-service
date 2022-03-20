@@ -9,6 +9,7 @@ import (
 	h "github.com/darkjedidj/cinema-service/internal/repository/halls"
 )
 
+// Service is a struct to store DB and logger connection
 type Service struct {
 	repo *h.Repository
 	log  *zap.Logger

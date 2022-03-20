@@ -40,7 +40,7 @@ func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) 
 	case http.MethodDelete:
 		h.Delete(response, request) // DELETE BASE_URL/v1/halls/{id}
 	default:
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
@@ -53,7 +53,7 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 	case http.MethodPost:
 		h.Create(response, request) // POST BASE_URL/v1/halls
 	default:
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
