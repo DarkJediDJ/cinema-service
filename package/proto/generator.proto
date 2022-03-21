@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+option go_package = "github.com/darkjedidj/ticketgenerator";
+
+package transactions;
+
+message TicketRequset {
+    string time = 1;
+    int64 price = 2;
+    int64 seat = 3;
+    int64 id = 4;
+    string title = 5;
+}
+
+message IDReply{
+    int64 ID = 1;
+}
+
+service TicketGenerator {
+    rpc GetTicket(TicketRequset) returns (IDReply) {}
+}
