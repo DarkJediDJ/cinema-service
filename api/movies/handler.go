@@ -3,6 +3,7 @@ package movies
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -82,7 +83,16 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	resource, err := h.s.Create(&movie)
 	if err != nil {
-		response.WriteHeader(http.StatusUnprocessableEntity)
+		if errors.Is(err, internal.ErrValidationFailed) {
+			response.WriteHeader(http.StatusBadRequest)
+			// TODO body
+			// response.Write(err.Error())
+
+			return
+		}
+
+		response.WriteHeader(http.StatusInternalServerError)
+
 		return
 	}
 

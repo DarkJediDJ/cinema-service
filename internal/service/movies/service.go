@@ -2,6 +2,7 @@ package movies
 
 import (
 	"database/sql"
+	"fmt"
 	"time"
 
 	"github.com/darkjedidj/cinema-service/internal"
@@ -27,8 +28,8 @@ func Init(db *sql.DB, l *zap.Logger) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error) {
-	entity, ok := r.(*h.Resource)
+func (s *Service) Create(i internal.Identifiable) (internal.Identifiable, error) {
+	res, ok := i.(*h.Resource)
 	if !ok {
 		s.log.Info("Failed to assert movie object.",
 			zap.Bool("ok", ok),
@@ -37,29 +38,38 @@ func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error)
 		return nil, internal.ErrInternalFailure
 	}
 
-	duration, err := time.ParseDuration(entity.Duration)
-
+	duration, err := time.ParseDuration(res.Duration)
 	if err != nil {
-		s.log.Info("Failed to parse time.",
-			zap.Error(err),
-		)
+		error := fmt.Errorf("%w: failed to parse duration", internal.ErrValidationFailed)
 
-		return nil, internal.ErrInternalFailure
+		return nil, error
 	}
 
-	if duration.Minutes() < minMinutes || duration.Minutes() > maxMinutes {
-		s.log.Info("Wrond duration value")
+	if duration.Minutes() < minMinutes {
+		error := fmt.Errorf("%w: duration too short", internal.ErrValidationFailed)
 
-		return nil, internal.ErrInternalFailure
+		return nil, error
 	}
 
-	if len(entity.Name) <= minLetters || len(entity.Name) > maxLetters {
-		s.log.Info("Wrong name value")
+	if duration.Minutes() > maxMinutes {
+		error := fmt.Errorf("%w: duration too long", internal.ErrValidationFailed)
 
-		return nil, internal.ErrInternalFailure
+		return nil, error
 	}
 
-	return s.repo.Create(r)
+	if len(res.Name) <= minLetters {
+		error := fmt.Errorf("%w: name too short", internal.ErrValidationFailed)
+
+		return nil, error
+	}
+
+	if len(res.Name) > maxLetters {
+		error := fmt.Errorf("%w: name too long", internal.ErrValidationFailed)
+
+		return nil, error
+	}
+
+	return s.repo.Create(i)
 }
 
 // Retrieve logic layer for repository method
@@ -67,7 +77,7 @@ func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
 	return s.repo.Retrieve(id)
 }
 
-// RetriveAll logic layer for repository method
+// RetrieveAll logic layer for repository method
 func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
 	return s.repo.RetrieveAll()
 }
