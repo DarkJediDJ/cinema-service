@@ -85,13 +85,20 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
-			// TODO body
-			// response.Write(err.Error())
 
+			_, err = response.Write([]byte(err.Error()))
+			if err != nil {
+				h.log.Info("Failed to write hall response.",
+					zap.Error(err),
+				)
+
+				response.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
-		response.WriteHeader(http.StatusInternalServerError)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 
 		return
 	}
