@@ -35,7 +35,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "halls"
+                    "Halls"
                 ],
                 "summary": "List halls",
                 "responses": {
@@ -60,7 +60,7 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "halls"
+                    "Halls"
                 ],
                 "summary": "Create hall",
                 "parameters": [
@@ -90,13 +90,13 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "halls"
+                    "Halls"
                 ],
                 "summary": "Get hall",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
+                        "description": "Hall ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -118,13 +118,126 @@ const docTemplate = `{
                     "application/json"
                 ],
                 "tags": [
-                    "halls"
+                    "Halls"
                 ],
                 "summary": "Delete hall",
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "User ID",
+                        "description": "Hall ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/movies": {
+            "get": {
+                "description": "get movies",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "List movie",
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "array",
+                            "items": {
+                                "type": "array",
+                                "items": {}
+                            }
+                        }
+                    }
+                }
+            },
+            "post": {
+                "description": "Creates movie and returns created object",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Create movie",
+                "parameters": [
+                    {
+                        "description": "The body to create a movie",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/movies/{id}": {
+            "get": {
+                "description": "Gets movie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Get movie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Movie ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            },
+            "delete": {
+                "description": "Deletes movie",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Movies"
+                ],
+                "summary": "Delete movie",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Movie ID",
                         "name": "id",
                         "in": "path",
                         "required": true

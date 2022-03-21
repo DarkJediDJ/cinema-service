@@ -30,7 +30,7 @@ paths:
             type: array
       summary: List halls
       tags:
-      - halls
+      - Halls
     post:
       consumes:
       - application/json
@@ -49,14 +49,14 @@ paths:
           schema: {}
       summary: Create hall
       tags:
-      - halls
+      - Halls
   /halls/{id}:
     delete:
       consumes:
       - application/json
       description: Deletes hall
       parameters:
-      - description: User ID
+      - description: Hall ID
         in: path
         name: id
         required: true
@@ -69,13 +69,13 @@ paths:
           schema: {}
       summary: Delete hall
       tags:
-      - halls
+      - Halls
     get:
       consumes:
       - application/json
       description: Gets hall
       parameters:
-      - description: User ID
+      - description: Hall ID
         in: path
         name: id
         required: true
@@ -88,5 +88,81 @@ paths:
           schema: {}
       summary: Get hall
       tags:
-      - halls
+      - Halls
+  /movies:
+    get:
+      consumes:
+      - application/json
+      description: get movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+      summary: List movie
+      tags:
+      - Movies
+    post:
+      consumes:
+      - application/json
+      description: Creates movie and returns created object
+      parameters:
+      - description: The body to create a movie
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create movie
+      tags:
+      - Movies
+  /movies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete movie
+      tags:
+      - Movies
+    get:
+      consumes:
+      - application/json
+      description: Gets movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get movie
+      tags:
+      - Movies
 swagger: "2.0"

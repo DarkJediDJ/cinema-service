@@ -1,15 +1,14 @@
-package hall
+package movie
 
 import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-	"go.uber.org/zap"
-
 	"github.com/darkjedidj/cinema-service/internal"
+	"go.uber.org/zap"
 )
 
-// Repository is a struct to store storage and logger connection
+// Repository is a struct to store DB and logger connection
 type Repository struct {
 	DB  *sql.DB
 	Log *zap.Logger
@@ -17,9 +16,9 @@ type Repository struct {
 
 // Resource is a struct to store data about entity
 type Resource struct {
-	ID    int64 `json:"ID"`
-	VIP   bool  `json:"VIP"`
-	Seats int   `json:"seats"`
+	ID       int64  `json:"ID"`
+	Name     string `json:"Name"`
+	Duration string `json:"Duration"`
 }
 
 func (r *Resource) GID() int64 {
@@ -28,11 +27,11 @@ func (r *Resource) GID() int64 {
 
 // Create new entity in storage
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
-	var id int64
+	var id int
 
-	hall, ok := i.(*Resource)
+	movie, ok := i.(*Resource)
 	if !ok {
-		r.Log.Info("Failed to create Hall object.",
+		r.Log.Info("Failed to create movie object.",
 			zap.Bool("ok", ok),
 		)
 
@@ -40,9 +39,9 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 	}
 
 	query := sq.
-		Insert("halls").
-		Columns("vip", "seats").
-		Values(hall.VIP, hall.Seats).
+		Insert("movies").
+		Columns("name", "duration").
+		Values(movie.Name, movie.Duration).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
@@ -59,7 +58,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(id)
+	return r.Retrieve(int64(id))
 }
 
 // Retrieve entity from storage
@@ -67,8 +66,8 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
 	query := sq.
-		Select("vip", "id", "seats").
-		From("halls").
+		Select("name", "duration", "id").
+		From("movies").
 		Where(sq.Eq{
 			"id": id,
 		}).
@@ -77,7 +76,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 	err := query.
 		QueryRow().
-		Scan(&res.VIP, &res.ID, &res.Seats)
+		Scan(&res.Name, &res.Duration, &res.ID)
 
 	if err == sql.ErrNoRows {
 
@@ -85,7 +84,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	}
 
 	if err != nil {
-		r.Log.Info("Failed to run Retrieve hall query.",
+		r.Log.Info("Failed to run Retrieve movie query.",
 			zap.Error(err),
 		)
 
@@ -97,9 +96,8 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 // Delete entity in storage
 func (r *Repository) Delete(id int64) error {
-
 	query := sq.
-		Delete("halls").
+		Delete("movies").
 		Where(sq.Eq{
 			"id": id,
 		}).
@@ -110,7 +108,7 @@ func (r *Repository) Delete(id int64) error {
 		Exec()
 
 	if err != nil {
-		r.Log.Info("Failed to run Delete hall query.",
+		r.Log.Info("Failed to run Delete movie query.",
 			zap.Error(err),
 		)
 
@@ -122,17 +120,15 @@ func (r *Repository) Delete(id int64) error {
 
 // RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
-
 	query := sq.
-		Select("vip", "id", "seats").
-		From("halls").
+		Select("name", "duration", "id").
+		From("movies").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
 
 	rows, err := query.Query()
-
 	if err != nil {
-		r.Log.Info("Failed to run RetrieveAll halls query.",
+		r.Log.Info("Failed to run RetrieveAll movies query.",
 			zap.Error(err),
 		)
 
@@ -144,13 +140,13 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	for rows.Next() {
 		res := &Resource{}
 
-		err = rows.Scan(&res.VIP, &res.ID, &res.Seats)
+		err = rows.Scan(&res.Name, &res.Duration, &res.ID)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
 
 		if err != nil {
-			r.Log.Info("Failed to scan rows into halls structures.",
+			r.Log.Info("Failed to scan rows into movies structures.",
 				zap.Error(err),
 			)
 

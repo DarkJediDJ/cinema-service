@@ -1,4 +1,4 @@
-package hall
+package movie
 
 import (
 	"database/sql"
@@ -6,17 +6,16 @@ import (
 	"log"
 	"testing"
 
-	"github.com/darkjedidj/cinema-service/internal"
-	"go.uber.org/zap"
-
 	"github.com/DATA-DOG/go-sqlmock"
+	"github.com/darkjedidj/cinema-service/internal"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
 )
 
-var hall = &Resource{
-	ID:    15,
-	VIP:   true,
-	Seats: 15,
+var movie = &Resource{
+	ID:       15,
+	Name:     "Lord of the Rings",
+	Duration: "2h22m",
 }
 
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
@@ -45,24 +44,24 @@ func TestCreate(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
 					WillReturnError(internal.ErrInternalFailure)
 			},
 		},
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: hall,
+			expectedResult: movie,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
 					WillReturnRows(sqlm2.
 						NewRows([]string{"id"}).
-						AddRow(hall.ID))
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
-					WithArgs(hall.ID).
+						AddRow(movie.ID))
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies WHERE id = \\$1").
+					WithArgs(movie.ID).
 					WillReturnRows(sqlm2.
-						NewRows([]string{"vip", "id", "seats"}).
-						AddRow(hall.VIP, hall.ID, hall.Seats))
+						NewRows([]string{"name", "duration", "id"}).
+						AddRow(movie.Name, movie.Duration, movie.ID))
 			},
 		},
 		{
@@ -70,7 +69,7 @@ func TestCreate(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
 					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
 		},
@@ -93,7 +92,7 @@ func TestCreate(t *testing.T) {
 			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			res, err := repo.Create(hall)
+			res, err := repo.Create(movie)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -112,37 +111,41 @@ func TestRetrieve(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
+		id             int64
 	}{
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: hall,
+			expectedResult: movie,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
-					WithArgs(hall.ID).
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies WHERE id = \\$1").
+					WithArgs(movie.ID).
 					WillReturnRows(sqlm2.
-						NewRows([]string{"vip", "id", "seats"}).
-						AddRow(hall.VIP, hall.ID, hall.Seats))
+						NewRows([]string{"name", "duration", "id"}).
+						AddRow(movie.Name, movie.Duration, movie.ID))
 			},
+			id: int64(movie.ID),
 		},
 		{
 			name:           "failed, database error",
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
-					WillReturnError(internal.ErrInternalFailure)
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies WHERE id = \\$1").
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
 			},
+			id: int64(movie.ID),
 		},
 		{
 			name:           "failed, sql no rows error",
 			expectedError:  nil,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls WHERE id = \\$1").
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies WHERE id = \\$1").
 					WillReturnRows(sqlm2.
 						NewRows(nil))
 			},
+			id: 5,
 		},
 	}
 
@@ -163,7 +166,7 @@ func TestRetrieve(t *testing.T) {
 			repo := &Repository{DB: db, Log: logger}
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(hall.ID)
+			res, err := repo.Retrieve(movie.ID)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -186,12 +189,12 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: []internal.Identifiable{hall},
+			expectedResult: []internal.Identifiable{movie},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies").
 					WillReturnRows(sqlm2.
-						NewRows([]string{"vip", "id", "seats"}).
-						AddRow(hall.VIP, hall.ID, hall.Seats))
+						NewRows([]string{"name", "duration", "id"}).
+						AddRow(movie.Name, movie.Duration, movie.ID))
 			},
 		},
 		{
@@ -199,7 +202,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies").
 					WillReturnError(internal.ErrInternalFailure)
 			},
 		},
@@ -208,7 +211,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedError:  nil,
 			expectedResult: []internal.Identifiable{},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT vip, id, seats FROM halls").
+				sqlm2.ExpectQuery("SELECT name, duration, id FROM movies").
 					WillReturnRows(sqlm2.NewRows([]string{}))
 			},
 		},
@@ -254,24 +257,24 @@ func TestDelete(t *testing.T) {
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: hall,
+			expectedResult: movie,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectExec("DELETE FROM halls WHERE id = \\$1").
-					WithArgs(hall.ID).
+				sqlm2.ExpectExec("DELETE FROM movies WHERE id = \\$1").
+					WithArgs(movie.ID).
 					WillReturnResult(sqlmock.NewResult(1, 1))
 			},
-			id: int64(hall.ID),
+			id: int64(movie.ID),
 		},
 		{
 			name:           "failed, database error",
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectExec("DELETE FROM halls WHERE id = \\$1").
-					WithArgs(hall.ID).
-					WillReturnError(internal.ErrInternalFailure)
+				sqlm2.ExpectExec("DELETE FROM movies WHERE id = \\$1").
+					WithArgs(movie.ID).
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
 			},
-			id: int64(hall.ID),
+			id: int64(movie.ID),
 		},
 	}
 
