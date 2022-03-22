@@ -2,36 +2,43 @@ package session
 
 import (
 	"database/sql"
-	"fmt"
 
 	"github.com/darkjedidj/cinema-service/internal"
+	"go.uber.org/zap"
 
 	sq "github.com/Masterminds/squirrel"
 )
 
+// Repository is a struct to store DB and logger connection
 type Repository struct {
-	DB *sql.DB
+	DB  *sql.DB
+	Log *zap.Logger
 }
 
+// Resource is a struct to store data about entity
 type Resource struct {
-	ID       int    `json:"ID"`
-	Hall_id  int    `json:"hall_id,omitempty"`
-	Movie_id int    `json:"movie_id,omitempty"`
+	ID       int64  `json:"ID"`
+	Hall_id  int64  `json:"hall_id,omitempty"`
+	Movie_id int64  `json:"movie_id,omitempty"`
 	Schedule string `json:"Schedule"`
 	VIP      bool   `json:"VIP"`
 	Name     string `json:"Movie name"`
 }
 
-func (r *Resource) GID() int {
+func (r *Resource) GID() int64 {
 	return r.ID
 }
 
-// Create new session in DB
+// Create new entity in storage
 func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
 	var id int
 
 	session, ok := i.(*Resource)
 	if !ok {
+		r.Log.Info("Failed to create session object.",
+			zap.Bool("ok", ok),
+		)
+
 		return nil, internal.ErrInternalFailure
 	}
 
@@ -47,14 +54,17 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		Scan(&id)
 
 	if err != nil {
-		fmt.Print(err)
+		r.Log.Info("Failed to run Create session query.",
+			zap.Error(err),
+		)
+
 		return nil, internal.ErrInternalFailure
 	}
 
 	return r.Retrieve(int64(id))
 }
 
-// Retrieve session from DB
+// Retrieve entity from storage
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
@@ -74,19 +84,22 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 		Scan(&res.ID, &res.VIP, &res.Name, &res.Schedule)
 
 	if err == sql.ErrNoRows {
-		fmt.Print(err)
+
 		return nil, nil
 	}
 
 	if err != nil {
-		fmt.Print(err)
-		return nil, err
+		r.Log.Info("Failed to run Retrieve session query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	return &res, nil
 }
 
-// Delete session in DB
+// Delete entity in storage
 func (r *Repository) Delete(id int64) error {
 	query := sq.
 		Delete("sessions").
@@ -100,13 +113,17 @@ func (r *Repository) Delete(id int64) error {
 		Exec()
 
 	if err != nil {
-		return err
+		r.Log.Info("Failed to run Delete session query.",
+			zap.Error(err),
+		)
+
+		return internal.ErrInternalFailure
 	}
 
 	return nil
 }
 
-// RetrieveAll sessions from DB
+// RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	query := sq.
 		Select("sessions.id", "halls.vip", "movies.name", "schedule").
@@ -118,7 +135,11 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 
 	rows, err := query.Query()
 	if err != nil {
-		return nil, err
+		r.Log.Info("Failed to run RetrieveAll sessions query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
 	}
 
 	var data []*Resource
@@ -130,8 +151,13 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
+
 		if err != nil {
-			return nil, err
+			r.Log.Info("Failed to scan rows into session structures.",
+				zap.Error(err),
+			)
+
+			return nil, internal.ErrInternalFailure
 		}
 
 		data = append(data, res)

@@ -88,7 +88,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 			_, err = response.Write([]byte(err.Error()))
 			if err != nil {
-				h.log.Info("Failed to write hall response.",
+				h.log.Info("Failed to write session response.",
 					zap.Error(err),
 				)
 

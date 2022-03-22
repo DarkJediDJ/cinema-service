@@ -51,7 +51,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		Scan(&id)
 
 	if err != nil {
-		r.Log.Info("Failed to run Create hall query.",
+		r.Log.Info("Failed to run Create movie query.",
 			zap.Error(err),
 		)
 

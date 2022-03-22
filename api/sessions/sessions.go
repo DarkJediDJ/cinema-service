@@ -3,29 +3,30 @@ package sessions
 import (
 	"database/sql"
 	"encoding/json"
-	"fmt"
-	"log"
+	"errors"
 	"net/http"
 	"strconv"
 
-	"github.com/darkjedidj/cinema-service/internal"
-
 	"github.com/gorilla/mux"
+	"go.uber.org/zap"
 
+	"github.com/darkjedidj/cinema-service/internal"
 	repo "github.com/darkjedidj/cinema-service/internal/repository/sessions"
 	service "github.com/darkjedidj/cinema-service/internal/service/sessions"
 )
 
 type Handler struct {
-	s internal.Service // Allows use service features
+	s   internal.Service // Allows use service features
+	log *zap.Logger
 }
 
-func Init(db *sql.DB) *Handler {
+func Init(db *sql.DB, l *zap.Logger) *Handler {
 
-	service := service.Init(db)
+	service := service.Init(db, l)
 
 	return &Handler{
-		s: service,
+		s:   service,
+		log: l,
 	}
 }
 
@@ -38,7 +39,7 @@ func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) 
 	case http.MethodDelete:
 		h.Delete(response, request) // DELETE BASE_URL/v1/sessions/{id}
 	default:
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
@@ -51,104 +52,208 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 	case http.MethodPost:
 		h.Create(response, request) // POST BASE_URL/v1/sessions
 	default:
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
 // Create get json and creates new session
+// Create godoc
+// @Summary      Create session
+// @Description  Creates session and returns created object
+// @Tags         Sessions
+// @Param        Body  body  internal.Identifiable  true  "The body to create a session"
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /sessions [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	var session repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
-
-	var session repo.Resource
 
 	err := json.NewDecoder(request.Body).Decode(&session)
 	if err != nil {
-		response.WriteHeader(http.StatusBadGateway)
+		h.log.Info("Failed to decode session json.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	dbsession, err := h.s.Create(&session)
+	resource, err := h.s.Create(&session)
 	if err != nil {
+		if errors.Is(err, internal.ErrValidationFailed) {
+			response.WriteHeader(http.StatusBadRequest)
+
+			_, err = response.Write([]byte(err.Error()))
+			if err != nil {
+				h.log.Info("Failed to write session response.",
+					zap.Error(err),
+				)
+
+				response.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
 		response.WriteHeader(http.StatusUnprocessableEntity)
+
 		return
 	}
 
-	res, err := json.Marshal(dbsession)
+	body, err := json.Marshal(resource)
 	if err != nil {
-		log.Fatal(err)
-	}
-	response.Header().Set("Content-Type", "application/json")
+		h.log.Info("Failed to marshall session structure.",
+			zap.Error(err),
+		)
 
-	_, err = response.Write(res)
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = response.Write(body)
 	if err != nil {
-		log.Fatal(err)
+		h.log.Info("Failed to write session response.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 
 }
 
 // Delete get ID and deletes session with the same ID
+// Delete godoc
+// @Summary      Delete session
+// @Description  Deletes session
+// @Param        id  path  integer  true  "Session ID"
+// @Tags         Sessions
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /sessions/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
+		h.log.Info("Failed to parse session id.",
+			zap.Error(err),
+		)
+
 		response.WriteHeader(http.StatusBadGateway)
+		return
 	}
 
 	err = h.s.Delete(int64(id))
 	if err != nil {
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
 
 	response.WriteHeader(http.StatusOK)
 }
 
 // Get ID and selects session with the same ID
+// Get godoc
+// @Summary      Get session
+// @Description  Gets session
+// @Param        id  path  integer  true  "Session ID"
+// @Tags         Sessions
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /sessions/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+
+	response.Header().Set("Content-Type", "application/json")
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		response.WriteHeader(http.StatusBadGateway)
-	}
+		h.log.Info("Failed to parse session id.",
+			zap.Error(err),
+		)
 
-	dbsession, err := h.s.Retrieve(int64(id))
-	if err != nil {
-		fmt.Print(err)
-		response.WriteHeader(http.StatusBadRequest)
+		response.WriteHeader(http.StatusBadGateway)
 		return
 	}
 
-	res, err := json.Marshal(dbsession)
+	resource, err := h.s.Retrieve(int64(id))
 	if err != nil {
-		log.Fatal(err)
+		response.WriteHeader(http.StatusUnprocessableEntity)
+		return
 	}
-	response.Header().Set("Content-Type", "application/json")
 
-	_, err = response.Write(res)
+	if resource == nil {
+		response.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	body, err := json.Marshal(resource)
 	if err != nil {
-		log.Fatal(err)
+		h.log.Info("Failed to marshall session structure.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = response.Write(body)
+	if err != nil {
+		h.log.Info("Failed to write session response.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
 
-// GetAll selects all session
+// GetAll selects all sessions
+// GetAll godoc
+// @Summary      List session
+// @Description  get sessions
+// @Tags         Sessions
+// @Accept       json
+// @Produce      json
+// @Success      200  {array}  []internal.Identifiable
+// @Router       /sessions [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
-
-	dbsessions, err := h.s.RetrieveAll()
+	response.Header().Set("Content-Type", "application/json")
+	resource, err := h.s.RetrieveAll()
 	if err != nil {
-		response.WriteHeader(http.StatusBadRequest)
+		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
 	}
 
-	res, err := json.Marshal(dbsessions)
-	if err != nil {
-		log.Fatal(err)
+	if resource == nil {
+		response.WriteHeader(http.StatusNotFound)
+		return
 	}
-	response.Header().Set("Content-Type", "application/json")
 
-	_, err = response.Write(res)
+	body, err := json.Marshal(resource)
 	if err != nil {
-		log.Fatal(err)
+		h.log.Info("Failed to marshall session structure.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	_, err = response.Write(body)
+	if err != nil {
+		h.log.Info("Failed to write session response.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 }
