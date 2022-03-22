@@ -1,0 +1,168 @@
+basePath: /v1
+host: localhost:8085
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: This is a sample cinetickets server.
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: Cinetickets API
+  version: "1.0"
+paths:
+  /halls:
+    get:
+      consumes:
+      - application/json
+      description: get halls
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+      summary: List halls
+      tags:
+      - Halls
+    post:
+      consumes:
+      - application/json
+      description: Creates hall and returns created object
+      parameters:
+      - description: The body to create a hall
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create hall
+      tags:
+      - Halls
+  /halls/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes hall
+      parameters:
+      - description: Hall ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete hall
+      tags:
+      - Halls
+    get:
+      consumes:
+      - application/json
+      description: Gets hall
+      parameters:
+      - description: Hall ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get hall
+      tags:
+      - Halls
+  /movies:
+    get:
+      consumes:
+      - application/json
+      description: get movies
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+      summary: List movie
+      tags:
+      - Movies
+    post:
+      consumes:
+      - application/json
+      description: Creates movie and returns created object
+      parameters:
+      - description: The body to create a movie
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create movie
+      tags:
+      - Movies
+  /movies/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete movie
+      tags:
+      - Movies
+    get:
+      consumes:
+      - application/json
+      description: Gets movie
+      parameters:
+      - description: Movie ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get movie
+      tags:
+      - Movies
+swagger: "2.0"
