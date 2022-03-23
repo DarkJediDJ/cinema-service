@@ -16,7 +16,7 @@ var session = &Resource{
 	ID:       15,
 	Hall_id:  0,
 	Movie_id: 0,
-	Schedule: "13:25",
+	Starts_at: "13:25",
 	VIP:      true,
 	Name:     "Matrix",
 }
@@ -60,11 +60,11 @@ func TestCreate(t *testing.T) {
 					WillReturnRows(sqlm2.
 						NewRows([]string{"id"}).
 						AddRow(session.ID))
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
 					WithArgs(session.ID).
 					WillReturnRows(sqlm2.
-						NewRows([]string{"id", "vip", "name", "schedule"}).
-						AddRow(session.ID, session.VIP, session.Name, session.Schedule))
+						NewRows([]string{"id", "vip", "name", "starts_at"}).
+						AddRow(session.ID, session.VIP, session.Name, session.Starts_at))
 			},
 		},
 		{
@@ -121,11 +121,11 @@ func TestRetrieve(t *testing.T) {
 			expectedError:  nil,
 			expectedResult: session,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
 					WithArgs(session.ID).
 					WillReturnRows(sqlm2.
-						NewRows([]string{"id", "vip", "name", "schedule"}).
-						AddRow(session.ID, session.VIP, session.Name, session.Schedule))
+						NewRows([]string{"id", "vip", "name", "starts_at"}).
+						AddRow(session.ID, session.VIP, session.Name, session.Starts_at))
 			},
 			id: int64(session.ID),
 		},
@@ -134,7 +134,7 @@ func TestRetrieve(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
 					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
 			},
 			id: int64(session.ID),
@@ -144,7 +144,7 @@ func TestRetrieve(t *testing.T) {
 			expectedError:  nil,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
 					WillReturnRows(sqlm2.
 						NewRows(nil))
 			},
@@ -194,10 +194,10 @@ func TestRetrieveAll(t *testing.T) {
 			expectedError:  nil,
 			expectedResult: []internal.Identifiable{session},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
 					WillReturnRows(sqlm2.
-						NewRows([]string{"id", "vip", "name", "schedule"}).
-						AddRow(session.ID, session.VIP, session.Name, session.Schedule))
+						NewRows([]string{"id", "vip", "name", "starts_at"}).
+						AddRow(session.ID, session.VIP, session.Name, session.Starts_at))
 			},
 		},
 		{
@@ -205,7 +205,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
 					WillReturnError(internal.ErrInternalFailure)
 			},
 		},
@@ -214,7 +214,7 @@ func TestRetrieveAll(t *testing.T) {
 			expectedError:  nil,
 			expectedResult: []internal.Identifiable{},
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, schedule FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
+				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
 					WillReturnRows(sqlm2.NewRows([]string{}))
 			},
 		},

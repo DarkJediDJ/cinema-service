@@ -17,12 +17,12 @@ type Repository struct {
 
 // Resource is a struct to store data about entity
 type Resource struct {
-	ID       int64  `json:"ID"`
-	Hall_id  int64  `json:"hall_id,omitempty"`
-	Movie_id int64  `json:"movie_id,omitempty"`
-	Schedule string `json:"Schedule"`
-	VIP      bool   `json:"VIP"`
-	Name     string `json:"Movie name"`
+	ID        int64  `json:"ID"`
+	Hall_id   int64  `json:"hall_id,omitempty"`
+	Movie_id  int64  `json:"movie_id,omitempty"`
+	Starts_at string `json:"Starts_at"`
+	VIP       bool   `json:"VIP"`
+	Name      string `json:"Movie name"`
 }
 
 func (r *Resource) GID() int64 {
@@ -41,11 +41,10 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 		return nil, internal.ErrInternalFailure
 	}
-
 	query := sq.
 		Insert("sessions").
-		Columns("hall_id", "movie_id", "schedule").
-		Values(session.Hall_id, session.Movie_id, session.Schedule).
+		Columns("hall_id", "movie_id", "starts_at").
+		Values(session.Hall_id, session.Movie_id, session.Starts_at).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB)
@@ -69,7 +68,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
 	query := sq.
-		Select("sessions.id", "halls.vip", "movies.name", "schedule").
+		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
 		From("sessions").
 		Join("movies ON sessions.movie_id = movies.id").
 		Join("halls ON sessions.hall_id = halls.id").
@@ -81,7 +80,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 	err := query.
 		QueryRow().
-		Scan(&res.ID, &res.VIP, &res.Name, &res.Schedule)
+		Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
 
 	if err == sql.ErrNoRows {
 
@@ -126,7 +125,7 @@ func (r *Repository) Delete(id int64) error {
 // RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	query := sq.
-		Select("sessions.id", "halls.vip", "movies.name", "schedule").
+		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
 		From("sessions").
 		Join("movies ON sessions.movie_id = movies.id").
 		Join("halls ON sessions.hall_id = halls.id").
@@ -147,7 +146,7 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	for rows.Next() {
 		res := &Resource{}
 
-		err = rows.Scan(&res.ID, &res.VIP, &res.Name, &res.Schedule)
+		err = rows.Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -170,4 +169,55 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	}
 
 	return interfaceSlice, nil
+}
+
+func (r *Repository) TimeValid(i internal.Identifiable) (bool, error) {
+	session, ok := i.(*Resource)
+	if !ok {
+		r.Log.Info("Failed to create session object.",
+			zap.Bool("ok", ok),
+		)
+
+		return false, internal.ErrValidationFailed
+	}
+
+	query := sq.Select("movies.duration, sessions.starts_at").
+		From("sessions").
+		Join("movies ON sessions.movie_id = movies.id").
+		Where("(?, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = ? AND sessions.movie_id = ?", session.Starts_at, session.Hall_id, session.Movie_id).
+		RunWith(r.DB).
+		PlaceholderFormat(sq.Dollar)
+
+	res, err := query.
+		Exec()
+	if err != nil {
+		r.Log.Info("Failed to run query.",
+			zap.Error(err),
+		)
+
+		return false, internal.ErrInternalFailure
+	}
+
+	rows, err := res.RowsAffected()
+	if err != nil {
+		r.Log.Info("Failed to count rows query.",
+			zap.Error(err),
+		)
+
+		return false, internal.ErrInternalFailure
+	}
+
+	if rows == 0 {
+		return true, nil
+	}
+
+	if err != nil {
+		r.Log.Info("Failed to run time valid session query.",
+			zap.Error(err),
+		)
+
+		return false, internal.ErrInternalFailure
+	}
+
+	return false, internal.ErrValidationFailed
 }
