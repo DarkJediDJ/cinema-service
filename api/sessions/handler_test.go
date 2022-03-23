@@ -28,9 +28,9 @@ func TestCreate(t *testing.T) {
 			name: "failure: empty body",
 			mockService: &test.MockService{
 				ExpectedResult: &movie.Resource{
-					Hall_id:  4,
-					Movie_id: 2,
-					Schedule: "14:35",
+					Hall_id:   4,
+					Movie_id:  2,
+					Starts_at: "2022-01-01 08:00:00",
 				},
 			},
 			expectedStatus: http.StatusBadRequest,
@@ -39,15 +39,15 @@ func TestCreate(t *testing.T) {
 			name: "success",
 			mockService: &test.MockService{
 				ExpectedResult: &movie.Resource{
-					Hall_id:  4,
-					Movie_id: 2,
-					Schedule: "14:35",
+					Hall_id:   4,
+					Movie_id:  2,
+					Starts_at: "2022-01-01 08:00:00",
 				},
 			},
 			body: `{
 				Hall_id:  4,
 				Movie_id: 2,
-				Schedule: "14:35",
+				Starts_at: "2022-01-01 08:00:00",
 			},`,
 			expectedStatus: http.StatusOK,
 		},
@@ -59,7 +59,7 @@ func TestCreate(t *testing.T) {
 			body: `{
 				Hall_id:  4,
 				Movie_id: 2,
-				Schedule: "14:35",
+				Starts_at: "2022-01-01 08:00:00",
 			},`,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
@@ -112,9 +112,9 @@ func TestRetrieve(t *testing.T) {
 			name: "success",
 			mockService: &test.MockService{
 				ExpectedResult: &movie.Resource{
-					Hall_id:  4,
-					Movie_id: 2,
-					Schedule: "14:35",
+					Hall_id:   4,
+					Movie_id:  2,
+					Starts_at: "2022-01-01 08:00:00",
 				},
 			},
 			id:             15,
@@ -181,9 +181,9 @@ func TestRetrieveAll(t *testing.T) {
 			name: "success",
 			mockService: &test.MockService{
 				ExpectedArray: []internal.Identifiable{&movie.Resource{
-					Hall_id:  4,
-					Movie_id: 2,
-					Schedule: "14:35",
+					Hall_id:   4,
+					Movie_id:  2,
+					Starts_at: "2022-01-01 08:00:00",
 				}},
 			},
 			expectedStatus: http.StatusOK,

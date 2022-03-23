@@ -23,6 +23,7 @@ func (a *App) New(db *sql.DB, l *zap.Logger) {
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/v1/sessions/{id}", sessions.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/sessions", sessions.Init(db, l).Handle)
+	myRouter.HandleFunc("/v1/halls/{id}/sessions", sessions.Init(db, l).Create)
 	myRouter.HandleFunc("/v1/movies/{id}", movies.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/movies", movies.Init(db, l).Handle)
 	myRouter.HandleFunc("/v1/halls/{id}", halls.Init(db, l).HandleID)

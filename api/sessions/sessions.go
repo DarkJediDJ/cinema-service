@@ -61,17 +61,30 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Summary      Create session
 // @Description  Creates session and returns created object
 // @Tags         Sessions
+// @Param        id  path  integer  true  "Session ID"
 // @Param        Body  body  internal.Identifiable  true  "The body to create a session"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /sessions [post]
+// @Router       /halls/{id}/sessions [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	vars := mux.Vars(request)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		h.log.Info("Failed to parse session id.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+
 	var session repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
 
-	err := json.NewDecoder(request.Body).Decode(&session)
+	err = json.NewDecoder(request.Body).Decode(&session)
 	if err != nil {
 		h.log.Info("Failed to decode session json.",
 			zap.Error(err),
@@ -81,6 +94,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
+	session.Hall_id = int64(id)
 	resource, err := h.s.Create(&session)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {

@@ -50,8 +50,6 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case http.MethodGet:
 		h.GetAll(response, request) // GET BASE_URL/v1/halls
-	case http.MethodPost:
-		h.Create(response, request) // POST BASE_URL/v1/halls
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
