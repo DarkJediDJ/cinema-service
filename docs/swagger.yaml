@@ -89,6 +89,31 @@ paths:
       summary: Get hall
       tags:
       - Halls
+  /halls/{id}/sessions:
+    post:
+      consumes:
+      - application/json
+      description: Creates session and returns created object
+      parameters:
+      - description: Session ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: The body to create a session
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create session
+      tags:
+      - Sessions
   /movies:
     get:
       consumes:
@@ -181,25 +206,6 @@ paths:
               type: array
             type: array
       summary: List session
-      tags:
-      - Sessions
-    post:
-      consumes:
-      - application/json
-      description: Creates session and returns created object
-      parameters:
-      - description: The body to create a session
-        in: body
-        name: Body
-        required: true
-        schema: {}
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: OK
-          schema: {}
-      summary: Create session
       tags:
       - Sessions
   /sessions/{id}:

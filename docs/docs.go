@@ -138,6 +138,43 @@ const docTemplate = `{
                 }
             }
         },
+        "/halls/{id}/sessions": {
+            "post": {
+                "description": "Creates session and returns created object",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Sessions"
+                ],
+                "summary": "Create session",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Session ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "The body to create a session",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/movies": {
             "get": {
                 "description": "get movies",
@@ -274,34 +311,6 @@ const docTemplate = `{
                                 "items": {}
                             }
                         }
-                    }
-                }
-            },
-            "post": {
-                "description": "Creates session and returns created object",
-                "consumes": [
-                    "application/json"
-                ],
-                "produces": [
-                    "application/json"
-                ],
-                "tags": [
-                    "Sessions"
-                ],
-                "summary": "Create session",
-                "parameters": [
-                    {
-                        "description": "The body to create a session",
-                        "name": "Body",
-                        "in": "body",
-                        "required": true,
-                        "schema": {}
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "description": "OK",
-                        "schema": {}
                     }
                 }
             }

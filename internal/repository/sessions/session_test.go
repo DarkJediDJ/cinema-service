@@ -13,12 +13,12 @@ import (
 )
 
 var session = &Resource{
-	ID:       15,
-	Hall_id:  0,
-	Movie_id: 0,
+	ID:        15,
+	Hall_id:   0,
+	Movie_id:  0,
 	Starts_at: "13:25",
-	VIP:      true,
-	Name:     "Matrix",
+	VIP:       true,
+	Name:      "Matrix",
 }
 
 func NewMock() (*sql.DB, sqlmock.Sqlmock) {
