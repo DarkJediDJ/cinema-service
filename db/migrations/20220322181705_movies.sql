@@ -2,7 +2,7 @@
 CREATE TABLE IF NOT EXISTS public.movies
 (
     name character varying(50) NOT NULL,
-    duration time without time zone NOT NULL,
+    duration INTERVAL,
     id SERIAL,
     CONSTRAINT movies_pkey PRIMARY KEY (id)
 );

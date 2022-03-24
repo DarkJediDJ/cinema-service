@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/darkjedidj/cinema-service/internal"
 	h "github.com/darkjedidj/cinema-service/internal/repository/movies"
-	"go.uber.org/zap"
 )
 
-const maxMinutes, minMinutes, maxLetters, minLetters = 350, 30, 0, 50
+const maxMinutes, minMinutes, maxLetters, minLetters = 350, 30, 50, 0
 
 // Service is a struct to store DB and logger connection
 type Service struct {

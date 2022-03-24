@@ -4,8 +4,9 @@ import (
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
-	"github.com/darkjedidj/cinema-service/internal"
 	"go.uber.org/zap"
+
+	"github.com/darkjedidj/cinema-service/internal"
 )
 
 // Repository is a struct to store DB and logger connection
@@ -38,20 +39,18 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	query := sq.
+	err := sq.
 		Insert("movies").
 		Columns("name", "duration").
 		Values(movie.Name, movie.Duration).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&id)
 
 	if err != nil {
-		r.Log.Info("Failed to run Create hall query.",
+		r.Log.Info("Failed to run Create movie query.",
 			zap.Error(err),
 		)
 
@@ -65,16 +64,14 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
-	query := sq.
+	err := sq.
 		Select("name", "duration", "id").
 		From("movies").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&res.Name, &res.Duration, &res.ID)
 
@@ -96,15 +93,14 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 // Delete entity in storage
 func (r *Repository) Delete(id int64) error {
-	query := sq.
+
+	_, err := sq.
 		Delete("movies").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	_, err := query.
+		RunWith(r.DB).
 		Exec()
 
 	if err != nil {
@@ -120,13 +116,13 @@ func (r *Repository) Delete(id int64) error {
 
 // RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
-	query := sq.
+
+	rows, err := sq.
 		Select("name", "duration", "id").
 		From("movies").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	rows, err := query.Query()
+		RunWith(r.DB).
+		Query()
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll movies query.",
 			zap.Error(err),

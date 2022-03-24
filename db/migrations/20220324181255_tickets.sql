@@ -1,7 +1,6 @@
 -- +goose Up
 CREATE TABLE IF NOT EXISTS public.tickets
 (
-    "time" time with time zone NOT NULL,
     price real NOT NULL,
     user_id integer NOT NULL,
     id SERIAL,

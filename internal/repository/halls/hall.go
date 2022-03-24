@@ -39,15 +39,13 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	query := sq.
+	err := sq.
 		Insert("halls").
 		Columns("vip", "seats").
 		Values(hall.VIP, hall.Seats).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&id)
 
@@ -66,16 +64,14 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
-	query := sq.
+	err := sq.
 		Select("vip", "id", "seats").
 		From("halls").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&res.VIP, &res.ID, &res.Seats)
 
@@ -98,15 +94,13 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 // Delete entity in storage
 func (r *Repository) Delete(id int64) error {
 
-	query := sq.
+	_, err := sq.
 		Delete("halls").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	_, err := query.
+		RunWith(r.DB).
 		Exec()
 
 	if err != nil {
@@ -123,13 +117,11 @@ func (r *Repository) Delete(id int64) error {
 // RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 
-	query := sq.
+	rows, err := sq.
 		Select("vip", "id", "seats").
 		From("halls").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	rows, err := query.Query()
+		RunWith(r.DB).Query()
 
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll halls query.",

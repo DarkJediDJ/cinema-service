@@ -6,11 +6,12 @@ import (
 	"log"
 	"os"
 
-	server "github.com/darkjedidj/cinema-service/api"
-	_ "github.com/darkjedidj/cinema-service/docs"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 	"go.uber.org/zap"
+
+	server "github.com/darkjedidj/cinema-service/api"
+	_ "github.com/darkjedidj/cinema-service/docs"
 )
 
 const port = ":8085"
