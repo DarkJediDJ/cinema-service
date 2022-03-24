@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/darkjedidj/cinema-service/internal"
 	"go.uber.org/zap"
 
+	"github.com/darkjedidj/cinema-service/internal"
 	h "github.com/darkjedidj/cinema-service/internal/repository/sessions"
 )
 

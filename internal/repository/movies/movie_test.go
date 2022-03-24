@@ -7,9 +7,10 @@ import (
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
-	"github.com/darkjedidj/cinema-service/internal"
 	"github.com/stretchr/testify/assert"
 	"go.uber.org/zap"
+
+	"github.com/darkjedidj/cinema-service/internal"
 )
 
 var movie = &Resource{

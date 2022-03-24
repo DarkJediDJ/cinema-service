@@ -3,10 +3,10 @@ package session
 import (
 	"database/sql"
 
-	"github.com/darkjedidj/cinema-service/internal"
+	sq "github.com/Masterminds/squirrel"
 	"go.uber.org/zap"
 
-	sq "github.com/Masterminds/squirrel"
+	"github.com/darkjedidj/cinema-service/internal"
 )
 
 // Repository is a struct to store DB and logger connection
@@ -41,14 +41,14 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 		return nil, internal.ErrInternalFailure
 	}
-	query := sq.
+
+	err := sq.
 		Insert("sessions").
 		Columns("hall_id", "movie_id", "starts_at").
 		Values(session.Hall_id, session.Movie_id, session.Starts_at).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&id)
 
@@ -67,7 +67,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 	var res Resource
 
-	query := sq.
+	err := sq.
 		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
 		From("sessions").
 		Join("movies ON sessions.movie_id = movies.id").
@@ -76,9 +76,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 			"sessions.id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	err := query.
+		RunWith(r.DB).
 		QueryRow().
 		Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
 
@@ -100,15 +98,14 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 
 // Delete entity in storage
 func (r *Repository) Delete(id int64) error {
-	query := sq.
+
+	_, err := sq.
 		Delete("sessions").
 		Where(sq.Eq{
 			"id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	_, err := query.
+		RunWith(r.DB).
 		Exec()
 
 	if err != nil {
@@ -124,15 +121,14 @@ func (r *Repository) Delete(id int64) error {
 
 // RetrieveAll entity from storage
 func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
-	query := sq.
+
+	rows, err := sq.
 		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
 		From("sessions").
 		Join("movies ON sessions.movie_id = movies.id").
 		Join("halls ON sessions.hall_id = halls.id").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB)
-
-	rows, err := query.Query()
+		RunWith(r.DB).Query()
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll sessions query.",
 			zap.Error(err),
@@ -181,14 +177,12 @@ func (r *Repository) TimeValid(i internal.Identifiable) (bool, error) {
 		return false, internal.ErrValidationFailed
 	}
 
-	query := sq.Select("movies.duration, sessions.starts_at").
+	res, err := sq.Select("movies.duration, sessions.starts_at").
 		From("sessions").
 		Join("movies ON sessions.movie_id = movies.id").
 		Where("(?, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = ? AND sessions.movie_id = ?", session.Starts_at, session.Hall_id, session.Movie_id).
 		RunWith(r.DB).
-		PlaceholderFormat(sq.Dollar)
-
-	res, err := query.
+		PlaceholderFormat(sq.Dollar).
 		Exec()
 	if err != nil {
 		r.Log.Info("Failed to run query.",

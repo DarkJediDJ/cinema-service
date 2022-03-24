@@ -6,12 +6,11 @@ import (
 	"net/http"
 	"strconv"
 
-	_ "github.com/darkjedidj/cinema-service/docs"
-	"github.com/darkjedidj/cinema-service/internal"
+	"github.com/gorilla/mux"
 	"go.uber.org/zap"
 
-	"github.com/gorilla/mux"
-
+	_ "github.com/darkjedidj/cinema-service/docs"
+	"github.com/darkjedidj/cinema-service/internal"
 	repo "github.com/darkjedidj/cinema-service/internal/repository/halls"
 	service "github.com/darkjedidj/cinema-service/internal/service/halls"
 )
@@ -50,6 +49,8 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 	switch request.Method {
 	case http.MethodGet:
 		h.GetAll(response, request) // GET BASE_URL/v1/halls
+	case http.MethodPost:
+		h.Create(response, request) // GET BASE_URL/v1/halls
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}

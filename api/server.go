@@ -5,12 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/darkjedidj/cinema-service/api/halls"
-	"github.com/darkjedidj/cinema-service/api/movies"
-	"github.com/darkjedidj/cinema-service/api/sessions"
 	"github.com/gorilla/mux"
 	httpSwagger "github.com/swaggo/http-swagger" // http-swagger middleware
 	"go.uber.org/zap"
+
+	"github.com/darkjedidj/cinema-service/api/halls"
+	"github.com/darkjedidj/cinema-service/api/movies"
+	"github.com/darkjedidj/cinema-service/api/sessions"
 )
 
 type App struct {

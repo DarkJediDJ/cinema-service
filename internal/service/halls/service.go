@@ -3,9 +3,9 @@ package halls
 import (
 	"database/sql"
 
-	"github.com/darkjedidj/cinema-service/internal"
 	"go.uber.org/zap"
 
+	"github.com/darkjedidj/cinema-service/internal"
 	h "github.com/darkjedidj/cinema-service/internal/repository/halls"
 )
 

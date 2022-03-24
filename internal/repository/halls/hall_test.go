@@ -6,11 +6,11 @@ import (
 	"log"
 	"testing"
 
-	"github.com/darkjedidj/cinema-service/internal"
-	"go.uber.org/zap"
-
 	"github.com/DATA-DOG/go-sqlmock"
 	"github.com/stretchr/testify/assert"
+	"go.uber.org/zap"
+
+	"github.com/darkjedidj/cinema-service/internal"
 )
 
 var hall = &Resource{

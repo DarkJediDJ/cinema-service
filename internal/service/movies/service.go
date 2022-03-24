@@ -5,9 +5,10 @@ import (
 	"fmt"
 	"time"
 
+	"go.uber.org/zap"
+
 	"github.com/darkjedidj/cinema-service/internal"
 	h "github.com/darkjedidj/cinema-service/internal/repository/movies"
-	"go.uber.org/zap"
 )
 
 const maxMinutes, minMinutes, maxLetters, minLetters = 350, 30, 50, 0

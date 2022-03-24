@@ -50,7 +50,7 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 	case http.MethodGet:
 		h.GetAll(response, request) // GET BASE_URL/v1/sessions
 	case http.MethodPost:
-		h.Create(response, request) // POST BASE_URL/v1/sessions
+		h.Create(response, request) // POST BASE_URL/v1/halls/{id}/sessions
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
