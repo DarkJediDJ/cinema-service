@@ -22,33 +22,34 @@ func TestCreate(t *testing.T) {
 		name           string
 		mockService    *test.MockService
 		body           string
+		id             int64
 		expectedStatus int
 	}{
 		{
 			name: "failure: empty body",
 			mockService: &test.MockService{
 				ExpectedResult: &movie.Resource{
-					Hall_id:   4,
 					Movie_id:  2,
 					Starts_at: "2022-01-01 08:00:00",
 				},
 			},
+			id:             4,
 			expectedStatus: http.StatusBadRequest,
 		},
 		{
 			name: "success",
 			mockService: &test.MockService{
 				ExpectedResult: &movie.Resource{
-					Hall_id:   4,
 					Movie_id:  2,
 					Starts_at: "2022-01-01 08:00:00",
 				},
 			},
 			body: `{
-				Hall_id:  4,
-				Movie_id: 2,
-				Starts_at: "2022-01-01 08:00:00",
+				"Hall_id":  4,
+				"Movie_id": 2,
+				"Starts_at": "2022-01-01 08:00:00"
 			},`,
+			id:             4,
 			expectedStatus: http.StatusOK,
 		},
 		{
@@ -57,10 +58,11 @@ func TestCreate(t *testing.T) {
 				ExpectedError: internal.ErrInternalFailure,
 			},
 			body: `{
-				Hall_id:  4,
-				Movie_id: 2,
-				Starts_at: "2022-01-01 08:00:00",
+				"Hall_id":  4,
+				"Movie_id": 2,
+				"Starts_at": "2022-01-01 08:00:00"
 			},`,
+			id:             4,
 			expectedStatus: http.StatusUnprocessableEntity,
 		},
 	}
@@ -81,10 +83,17 @@ func TestCreate(t *testing.T) {
 
 			w := httptest.NewRecorder()
 
-			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tc.body))
+			vars := map[string]string{
+				"id": fmt.Sprintf("%d", tc.id),
+			}
+
+			r := httptest.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:8085/v1/halls/%d/sessions", tc.id), strings.NewReader(tc.body))
+
+			r = mux.SetURLVars(r, vars)
+
 			r.Header.Set("Content-Type", "application/json")
 
-			(&Handler{s: tc.mockService, log: logger}).Handle(w, r)
+			(&Handler{s: tc.mockService, log: logger}).Create(w, r)
 
 			assert.Equal(t, "application/json", w.Header().Get("Content-Type"))
 			assert.Equal(t, tc.expectedStatus, w.Code)
