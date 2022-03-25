@@ -1,6 +1,7 @@
 package session
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -30,7 +31,7 @@ func (r *Resource) GID() int64 {
 }
 
 // Create new entity in storage
-func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	var id int
 
 	session, ok := i.(*Resource)
@@ -60,11 +61,11 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(int64(id))
+	return r.Retrieve(int64(id), ctx)
 }
 
 // Retrieve entity from storage
-func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
+func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
 	var res Resource
 
 	err := sq.
@@ -97,7 +98,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 }
 
 // Delete entity in storage
-func (r *Repository) Delete(id int64) error {
+func (r *Repository) Delete(id int64, ctx context.Context) error {
 
 	_, err := sq.
 		Delete("sessions").
@@ -120,7 +121,7 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll entity from storage
-func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
+func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 
 	rows, err := sq.
 		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
@@ -167,7 +168,7 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	return interfaceSlice, nil
 }
 
-func (r *Repository) TimeValid(i internal.Identifiable) (bool, error) {
+func (r *Repository) TimeValid(i internal.Identifiable, ctx context.Context) (bool, error) {
 	session, ok := i.(*Resource)
 	if !ok {
 		r.Log.Info("Failed to create session object.",

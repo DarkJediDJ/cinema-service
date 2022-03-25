@@ -1,4 +1,4 @@
-package movies
+package tickets
 
 import (
 	"context"
@@ -9,10 +9,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
-	h "github.com/darkjedidj/cinema-service/internal/repository/movies"
+	h "github.com/darkjedidj/cinema-service/internal/repository/tickets"
 )
-
-const maxMinutes, minMinutes, maxLetters, minLetters = 350, 30, 50, 0
 
 // Service is a struct to store DB and logger connection
 type Service struct {
@@ -33,58 +31,64 @@ func Init(db *sql.DB, l *zap.Logger) *Service {
 func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	res, ok := i.(*h.Resource)
 	if !ok {
-		s.log.Info("Failed to assert movie object.",
+		s.log.Info("Failed to assert ticket object.",
 			zap.Bool("ok", ok),
 		)
 
 		return nil, internal.ErrInternalFailure
 	}
 
-	duration, err := time.ParseDuration(res.Duration)
+	timeoutCtx, cancel := context.WithTimeout(ctx, 100*time.Second)
+	defer cancel()
+
+	tx, err := s.repo.DB.BeginTx(timeoutCtx, nil)
 	if err != nil {
-		error := fmt.Errorf("%w: failed to parse duration", internal.ErrValidationFailed)
 
-		return nil, error
+		tx.Rollback()
+		return nil, fmt.Errorf("%w:couldnt open transaction connection", err)
 	}
 
-	if duration.Minutes() < minMinutes {
-		error := fmt.Errorf("%w: duration too short", internal.ErrValidationFailed)
-
-		return nil, error
+	seatT, err := s.repo.SeatNumber(i, ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
 	}
 
-	if duration.Minutes() > maxMinutes {
-		error := fmt.Errorf("%w: duration too long", internal.ErrValidationFailed)
-
-		return nil, error
+	seatH, err := s.repo.HallSeatNumber(i, ctx, tx)
+	if err != nil {
+		tx.Rollback()
+		return nil, err
 	}
 
-	if len(res.Name) <= minLetters {
-		error := fmt.Errorf("%w: name too short", internal.ErrValidationFailed)
-
-		return nil, error
+	if seatT >= seatH {
+		return nil, internal.ErrValidationFailed
 	}
 
-	if len(res.Name) > maxLetters {
-		error := fmt.Errorf("%w: name too long", internal.ErrValidationFailed)
+	res.Seat = seatT + 1
 
-		return nil, error
+	result, err := s.repo.Create(ctx, res, tx)
+	if err != nil {
+		return nil, internal.ErrInternalFailure
 	}
 
-	return s.repo.Create(i, ctx)
+	err = tx.Commit()
+	if err != nil {
+		return nil, internal.ErrInternalFailure
+	}
+	return result, err
 }
 
 // Retrieve logic layer for repository method
 func (s *Service) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
-	return s.repo.Retrieve(id, ctx)
+	return s.repo.Retrieve(int64(id), ctx)
 }
 
-// RetrieveAll logic layer for repository method
+// RetriveAll logic layer for repository method
 func (s *Service) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 	return s.repo.RetrieveAll(ctx)
 }
 
 // Delete logic layer for repository method
 func (s *Service) Delete(id int64, ctx context.Context) error {
-	return s.repo.Delete(id, ctx)
+	return s.repo.Delete(int64(id), ctx)
 }

@@ -1,6 +1,7 @@
 package movie
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -27,7 +28,7 @@ func (r *Resource) GID() int64 {
 }
 
 // Create new entity in storage
-func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	var id int
 
 	movie, ok := i.(*Resource)
@@ -57,11 +58,11 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(int64(id))
+	return r.Retrieve(int64(id), ctx)
 }
 
 // Retrieve entity from storage
-func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
+func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
 	var res Resource
 
 	err := sq.
@@ -92,7 +93,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 }
 
 // Delete entity in storage
-func (r *Repository) Delete(id int64) error {
+func (r *Repository) Delete(id int64, ctx context.Context) error {
 
 	_, err := sq.
 		Delete("movies").
@@ -115,7 +116,7 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll entity from storage
-func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
+func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 
 	rows, err := sq.
 		Select("name", "duration", "id").

@@ -1,6 +1,7 @@
 package movie
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -91,9 +92,10 @@ func TestCreate(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Create(movie)
+			res, err := repo.Create(movie, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -165,9 +167,10 @@ func TestRetrieve(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(movie.ID)
+			res, err := repo.Retrieve(movie.ID, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -233,9 +236,10 @@ func TestRetrieveAll(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.RetrieveAll()
+			res, err := repo.RetrieveAll(ctx)
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
 		})
@@ -294,9 +298,10 @@ func TestDelete(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			err = repo.Delete(tc.id)
+			err = repo.Delete(tc.id, ctx)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}

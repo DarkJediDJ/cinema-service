@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -18,6 +19,7 @@ import (
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
+	ctx context.Context
 }
 
 func Init(db *sql.DB, l *zap.Logger) *Handler {
@@ -93,7 +95,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	}
 
 	session.Hall_id = int64(id)
-	resource, err := h.s.Create(&session)
+	resource, err := h.s.Create(&session, h.ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
@@ -161,7 +163,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Delete(int64(id))
+	err = h.s.Delete(int64(id), h.ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
@@ -195,7 +197,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Retrieve(int64(id))
+	resource, err := h.s.Retrieve(int64(id), h.ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -238,7 +240,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 // @Router       /sessions [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	resource, err := h.s.RetrieveAll()
+	resource, err := h.s.RetrieveAll(h.ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return

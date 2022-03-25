@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -19,11 +20,11 @@ type Repository struct {
 type Resource struct {
 	Starts_at  string `json:"Starts_at"`
 	Price      float64
-	Seat       int
+	Seat       int64
 	ID         int64
 	Title      string
-	User_ID    int
-	Session_ID int
+	User_ID    int64
+	Session_ID int64
 }
 
 func (r *Resource) GID() int64 {
@@ -31,7 +32,7 @@ func (r *Resource) GID() int64 {
 }
 
 // Create new entity in storage
-func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sql.Tx) (internal.Identifiable, error) {
 	var id int
 
 	ticket, ok := i.(*Resource)
@@ -45,11 +46,11 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 
 	err := sq.
 		Insert("tickets").
-		Columns("user_id", "price", "session_id").
-		Values(ticket.User_ID, ticket.Price, ticket.Session_ID).
+		Columns("user_id", "price", "session_id", "seat").
+		Values(ticket.User_ID, ticket.Price, ticket.Session_ID, ticket.Seat).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB).
+		RunWith(tx).
 		QueryRow().
 		Scan(&id)
 
@@ -61,19 +62,18 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(int64(id))
+	return r.Retrieve(int64(id), ctx)
 }
 
 // Retrieve entity from storage
-func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
+func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
 	var res Resource
 
 	err := sq.
-		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "halls.seats", "sessions.starts_at", "tickets.price").
+		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at", "tickets.price").
 		From("tickets").
 		Join("sessions ON tickets.session_id = sessions.id").
-		Join("movies ON sessions.movies_id = movies.id").
-		Join("halls ON sessions.hall_id = halls.id").
+		Join("movies ON sessions.movie_id = movies.id").
 		Where(sq.Eq{
 			"tickets.id": id,
 		}).
@@ -99,10 +99,10 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 }
 
 // Delete entity in storage
-func (r *Repository) Delete(id int64) error {
+func (r *Repository) Delete(id int64, ctx context.Context) error {
 
 	_, err := sq.
-		Delete("sessions").
+		Delete("tickets").
 		Where(sq.Eq{
 			"id": id,
 		}).
@@ -122,13 +122,13 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll entity from storage
-func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
+func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 
 	rows, err := sq.
-		Select("sessions.id", "halls.vip", "movies.name", "starts_at").
-		From("sessions").
+		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at", "tickets.price").
+		From("tickets").
+		Join("sessions ON tickets.session_id = sessions.id").
 		Join("movies ON sessions.movie_id = movies.id").
-		Join("halls ON sessions.hall_id = halls.id").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).Query()
 	if err != nil {
@@ -144,7 +144,7 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	for rows.Next() {
 		res := &Resource{}
 
-		err = rows.Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
+		err = rows.Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at, &res.Price)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}
@@ -169,51 +169,71 @@ func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
 	return interfaceSlice, nil
 }
 
-func (r *Repository) TimeValid(i internal.Identifiable) (bool, error) {
-	session, ok := i.(*Resource)
+func (r *Repository) SeatNumber(i internal.Identifiable, ctx context.Context, tx *sql.Tx) (int64, error) {
+	var seat sql.NullInt64
+
+	ticket, ok := i.(*Resource)
 	if !ok {
-		r.Log.Info("Failed to create session object.",
+		r.Log.Info("Failed to create ticket object.",
 			zap.Bool("ok", ok),
 		)
 
-		return false, internal.ErrValidationFailed
+		return 0, internal.ErrInternalFailure
 	}
-
-	res, err := sq.Select("movies.duration, sessions.starts_at").
-		From("sessions").
-		Join("movies ON sessions.movie_id = movies.id").
-		Where("(?, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = ? AND sessions.movie_id = ?", session.Starts_at, session.Hall_id, session.Movie_id).
-		RunWith(r.DB).
+	err := sq.
+		Select("MAX(tickets.seat)").
+		From("tickets").
+		Join("sessions ON tickets.session_id = sessions.id").
+		Join("halls ON sessions.hall_id = halls.id").
+		Where(sq.Eq{
+			"sessions.id": ticket.Session_ID,
+		}).
 		PlaceholderFormat(sq.Dollar).
-		Exec()
+		RunWith(tx).
+		QueryRow().
+		Scan(&seat)
+
 	if err != nil {
-		r.Log.Info("Failed to run query.",
+		r.Log.Info("Failed to run Retrieve session query.",
 			zap.Error(err),
 		)
 
-		return false, internal.ErrInternalFailure
+		return 0, internal.ErrInternalFailure
 	}
 
-	rows, err := res.RowsAffected()
+	return seat.Int64, nil
+}
+
+func (r *Repository) HallSeatNumber(i internal.Identifiable, ctx context.Context, tx *sql.Tx) (int64, error) {
+	var seat sql.NullInt64
+
+	ticket, ok := i.(*Resource)
+	if !ok {
+		r.Log.Info("Failed to create ticket object.",
+			zap.Bool("ok", ok),
+		)
+
+		return 0, internal.ErrInternalFailure
+	}
+	err := sq.
+		Select("halls.seats").
+		From("sessions").
+		Join("halls ON sessions.hall_id = halls.id").
+		Where(sq.Eq{
+			"sessions.id": ticket.Session_ID,
+		}).
+		PlaceholderFormat(sq.Dollar).
+		RunWith(tx).
+		QueryRow().
+		Scan(&seat)
+
 	if err != nil {
-		r.Log.Info("Failed to count rows query.",
+		r.Log.Info("Failed to run Retrieve session query.",
 			zap.Error(err),
 		)
 
-		return false, internal.ErrInternalFailure
+		return 0, internal.ErrInternalFailure
 	}
 
-	if rows == 0 {
-		return true, nil
-	}
-
-	if err != nil {
-		r.Log.Info("Failed to run time valid session query.",
-			zap.Error(err),
-		)
-
-		return false, internal.ErrInternalFailure
-	}
-
-	return false, internal.ErrValidationFailed
+	return seat.Int64, nil
 }

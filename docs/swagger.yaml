@@ -247,4 +247,86 @@ paths:
       summary: Get session
       tags:
       - Sessions
+  /sessions/{id}/tickets:
+    post:
+      consumes:
+      - application/json
+      description: Creates ticket and returns created object
+      parameters:
+      - description: ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: The body to create a ticket
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Create ticket
+      tags:
+      - Tickets
+  /tickets:
+    get:
+      consumes:
+      - application/json
+      description: get tickets
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items: {}
+              type: array
+            type: array
+      summary: List ticket
+      tags:
+      - Tickets
+  /tickets/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes ticket
+      parameters:
+      - description: ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Delete ticket
+      tags:
+      - Tickets
+    get:
+      consumes:
+      - application/json
+      description: Gets ticket
+      parameters:
+      - description: ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Get ticket
+      tags:
+      - Tickets
 swagger: "2.0"
