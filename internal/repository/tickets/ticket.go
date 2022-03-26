@@ -70,7 +70,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 	var res Resource
 
 	err := sq.
-		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at", "tickets.price").
+		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at").
 		From("tickets").
 		Join("sessions ON tickets.session_id = sessions.id").
 		Join("movies ON sessions.movie_id = movies.id").
@@ -80,7 +80,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
 		QueryRow().
-		Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at, &res.Price)
+		Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at)
 
 	if err == sql.ErrNoRows {
 
@@ -125,7 +125,7 @@ func (r *Repository) Delete(id int64, ctx context.Context) error {
 func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 
 	rows, err := sq.
-		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at", "tickets.price").
+		Select("tickets.id", "user_id", "price", "session_id", "movies.name", "tickets.seat", "sessions.starts_at").
 		From("tickets").
 		Join("sessions ON tickets.session_id = sessions.id").
 		Join("movies ON sessions.movie_id = movies.id").
@@ -144,7 +144,7 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 	for rows.Next() {
 		res := &Resource{}
 
-		err = rows.Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at, &res.Price)
+		err = rows.Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at)
 		if err == sql.ErrNoRows {
 			return nil, nil
 		}

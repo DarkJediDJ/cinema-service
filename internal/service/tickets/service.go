@@ -48,7 +48,7 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		if err != nil {
 			return nil, internal.ErrInternalFailure
 		}
-		return nil, fmt.Errorf("%w:couldnt open transaction connection", err)
+		return nil, fmt.Errorf("%w:couldn't open transaction connection", err)
 	}
 
 	seatT, err := s.repo.SeatNumber(i, ctx, tx)
