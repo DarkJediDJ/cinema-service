@@ -75,12 +75,17 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 
 	res.Seat = seatT + 1
 
-	result, err := s.repo.Create(ctx, res, tx)
+	createdID, err := s.repo.Create(ctx, res, tx)
 	if err != nil {
 		return nil, internal.ErrInternalFailure
 	}
 
-	return result, err
+	err = tx.Commit()
+	if err != nil {
+		return nil, internal.ErrInternalFailure
+	}
+
+	return s.repo.Retrieve(int64(createdID), ctx)
 }
 
 // Retrieve logic layer for repository method

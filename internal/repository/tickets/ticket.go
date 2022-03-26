@@ -32,7 +32,7 @@ func (r *Resource) GID() int64 {
 }
 
 // Create new entity in storage
-func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sql.Tx) (internal.Identifiable, error) {
+func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sql.Tx) (int64, error) {
 	var id int
 
 	ticket, ok := i.(*Resource)
@@ -41,7 +41,7 @@ func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sq
 			zap.Bool("ok", ok),
 		)
 
-		return nil, internal.ErrInternalFailure
+		return 0, internal.ErrInternalFailure
 	}
 
 	err := sq.
@@ -59,15 +59,10 @@ func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sq
 			zap.Error(err),
 		)
 
-		return nil, internal.ErrInternalFailure
+		return 0, internal.ErrInternalFailure
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return nil, internal.ErrInternalFailure
-	}
-
-	return r.Retrieve(int64(id), ctx)
+	return int64(id), nil
 }
 
 // Retrieve entity from storage

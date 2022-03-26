@@ -37,14 +37,14 @@ func TestCreate(t *testing.T) {
 	testCreateCases := []struct {
 		name              string
 		expectedError     error
-		expectedResult    internal.Identifiable
+		expectedResult    int64
 		prepare           func(sqlm2 sqlmock.Sqlmock)
 		transactionResult func(sqlm2 sqlmock.Sqlmock)
 	}{
 		{
 			name:           "failed, database error",
 			expectedError:  internal.ErrInternalFailure,
-			expectedResult: nil,
+			expectedResult: 0,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO tickets (.*)").
 					WillReturnError(internal.ErrInternalFailure)
@@ -56,7 +56,7 @@ func TestCreate(t *testing.T) {
 		{
 			name:           "success",
 			expectedError:  nil,
-			expectedResult: ticket,
+			expectedResult: 1,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO tickets (.*)").
 					WillReturnRows(sqlm2.
@@ -75,7 +75,7 @@ func TestCreate(t *testing.T) {
 		{
 			name:           "failed, retrieve error",
 			expectedError:  internal.ErrInternalFailure,
-			expectedResult: nil,
+			expectedResult: 0,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("INSERT INTO tickets (.*)").
 					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
