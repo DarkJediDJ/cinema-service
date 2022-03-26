@@ -313,8 +313,15 @@ func (h *Handler) Download(response http.ResponseWriter, request *http.Request) 
 	bf := bytes.NewBuffer([]byte{})
 	jsonEncoder := json.NewEncoder(bf)
 	jsonEncoder.SetEscapeHTML(false)
-	jsonEncoder.Encode(url)
+	err = jsonEncoder.Encode(url)
+	if err != nil {
+		h.log.Info("Failed to decode ticket json.",
+			zap.Error(err),
+		)
 
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
 	_, err = response.Write(bf.Bytes())
 	if err != nil {
 		h.log.Info("Failed to write ticket response.",
