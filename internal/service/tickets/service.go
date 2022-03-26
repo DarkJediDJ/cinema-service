@@ -80,10 +80,6 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		return nil, internal.ErrInternalFailure
 	}
 
-	err = tx.Commit()
-	if err != nil {
-		return nil, internal.ErrInternalFailure
-	}
 	return result, err
 }
 

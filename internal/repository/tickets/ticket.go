@@ -62,6 +62,11 @@ func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sq
 		return nil, internal.ErrInternalFailure
 	}
 
+	err = tx.Commit()
+	if err != nil {
+		return nil, internal.ErrInternalFailure
+	}
+
 	return r.Retrieve(int64(id), ctx)
 }
 
