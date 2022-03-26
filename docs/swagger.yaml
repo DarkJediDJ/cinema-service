@@ -329,4 +329,23 @@ paths:
       summary: Get ticket
       tags:
       - Tickets
+  /tickets/{id}/dowload:
+    get:
+      consumes:
+      - application/json
+      parameters:
+      - description: ticket ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema: {}
+      summary: Download ticket
+      tags:
+      - Tickets
 swagger: "2.0"

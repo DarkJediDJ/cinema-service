@@ -494,6 +494,35 @@ const docTemplate = `{
                     }
                 }
             }
+        },
+        "/tickets/{id}/dowload": {
+            "get": {
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tickets"
+                ],
+                "summary": "Download ticket",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ticket ID",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {}
+                    }
+                }
+            }
         }
     }
 }`
