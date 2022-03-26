@@ -1,6 +1,7 @@
 package tickets
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
 	"encoding/json"
@@ -14,22 +15,26 @@ import (
 	"github.com/darkjedidj/cinema-service/internal"
 	repo "github.com/darkjedidj/cinema-service/internal/repository/tickets"
 	service "github.com/darkjedidj/cinema-service/internal/service/tickets"
+	g "github.com/darkjedidj/cinema-service/package/generator"
 )
 
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
 	ctx context.Context
+	gen g.Client
 }
 
 func Init(db *sql.DB, l *zap.Logger, c context.Context) *Handler {
 
 	service := service.Init(db, l)
+	generator := g.Init(db, l)
 
 	return &Handler{
 		s:   service,
 		log: l,
 		ctx: c,
+		gen: *generator,
 	}
 }
 
@@ -271,4 +276,54 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// Download bought ticket
+// Download godoc
+// @Summary      Download ticket
+// @Param        id  path  integer  true  "ticket ID"
+// @Tags         Tickets
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /tickets/{id}/dowload [get]
+func (h *Handler) Download(response http.ResponseWriter, request *http.Request) {
+
+	vars := mux.Vars(request)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		h.log.Info("Failed to parse ticket id.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+
+	url, err := h.gen.GetTicket(h.ctx, int64(id))
+	if err != nil {
+		h.log.Info("Failed to get ticket fron bucket.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusUnprocessableEntity)
+	}
+
+	bf := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(bf)
+	jsonEncoder.SetEscapeHTML(false)
+	jsonEncoder.Encode(url)
+
+	_, err = response.Write(bf.Bytes())
+	if err != nil {
+		h.log.Info("Failed to write ticket response.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response.WriteHeader(http.StatusOK)
 }

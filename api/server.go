@@ -25,6 +25,7 @@ func (a *App) New(db *sql.DB, l *zap.Logger, c context.Context) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
 	myRouter.HandleFunc("/v1/tickets/{id}", tickets.Init(db, l, c).HandleID)
+	myRouter.HandleFunc("/v1/tickets/{id}/dowload", tickets.Init(db, l, c).Download)
 	myRouter.HandleFunc("/v1/tickets", tickets.Init(db, l, c).Handle)
 	myRouter.HandleFunc("/v1/sessions/{id}/tickets", tickets.Init(db, l, c).Create)
 	myRouter.HandleFunc("/v1/sessions/{id}", sessions.Init(db, l).HandleID)
