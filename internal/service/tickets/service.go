@@ -44,19 +44,28 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 	tx, err := s.repo.DB.BeginTx(timeoutCtx, nil)
 	if err != nil {
 
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			return nil, internal.ErrInternalFailure
+		}
 		return nil, fmt.Errorf("%w:couldnt open transaction connection", err)
 	}
 
 	seatT, err := s.repo.SeatNumber(i, ctx, tx)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			return nil, internal.ErrInternalFailure
+		}
 		return nil, err
 	}
 
 	seatH, err := s.repo.HallSeatNumber(i, ctx, tx)
 	if err != nil {
-		tx.Rollback()
+		err = tx.Rollback()
+		if err != nil {
+			return nil, internal.ErrInternalFailure
+		}
 		return nil, err
 	}
 
