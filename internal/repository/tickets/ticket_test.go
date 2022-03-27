@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -324,6 +325,174 @@ func TestDelete(t *testing.T) {
 
 			tc.prepare(mock)
 			err = repo.Delete(tc.id, ctx)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestSeatNumber(t *testing.T) {
+	testSeatNumberCases := []struct {
+		name              string
+		expectedError     error
+		expectedResult    internal.Identifiable
+		prepare           func(sqlm2 sqlmock.Sqlmock)
+		transactionResult func(sqlm2 sqlmock.Sqlmock)
+	}{
+		{
+			name:          "success",
+			expectedError: nil,
+			expectedResult: &Resource{
+				Starts_at:  "",
+				Price:      0,
+				Seat:       1,
+				ID:         0,
+				Title:      "",
+				User_ID:    0,
+				Session_ID: 0,
+			},
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery(regexp.QuoteMeta("SELECT MAX(tickets.seat) FROM tickets JOIN sessions ON tickets.session_id = sessions.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = $1")).
+					WithArgs(ticket.Session_ID).
+					WillReturnRows(sqlm2.
+						NewRows([]string{"seat"}).
+						AddRow(ticket.Seat))
+			},
+			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectCommit()
+			},
+		},
+		{
+			name:           "failed, database error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery(regexp.QuoteMeta("SELECT MAX(tickets.seat) FROM tickets JOIN sessions ON tickets.session_id = sessions.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = $1")).
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectRollback()
+			},
+		},
+	}
+
+	for _, tc := range testSeatNumberCases {
+		t.Run(tc.name, func(t *testing.T) {
+			db, mock := NewMock()
+			defer func() {
+				db.Close()
+			}()
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
+
+			mock.ExpectBegin()
+			tx, err := repo.DB.Begin()
+			if err != nil {
+				log.Fatalf("can't start transaction : %v", err)
+			}
+
+			tc.prepare(mock)
+
+			lastSeat, err := repo.SeatNumber(ticket.Session_ID, ctx, tx)
+
+			tc.transactionResult(mock)
+
+			assert.Equal(t, tc.expectedResult, lastSeat)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestHallSeatNumber(t *testing.T) {
+	testHallSeatNumberCases := []struct {
+		name              string
+		expectedError     error
+		expectedResult    internal.Identifiable
+		prepare           func(sqlm2 sqlmock.Sqlmock)
+		transactionResult func(sqlm2 sqlmock.Sqlmock)
+	}{
+		{
+			name:          "success",
+			expectedError: nil,
+			expectedResult: &Resource{
+				Starts_at:  "",
+				Price:      0,
+				Seat:       1,
+				ID:         0,
+				Title:      "",
+				User_ID:    0,
+				Session_ID: 0,
+			},
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery(regexp.QuoteMeta("SELECT halls.seats FROM sessions JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = $1")).
+					WithArgs(ticket.Session_ID).
+					WillReturnRows(sqlm2.
+						NewRows([]string{"seat"}).
+						AddRow(ticket.Seat))
+			},
+			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectCommit()
+			},
+		},
+		{
+			name:           "failed, database error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery(regexp.QuoteMeta("SELECT halls.seats FROM sessions JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = $1")).
+					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
+			},
+			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectRollback()
+			},
+		},
+	}
+
+	for _, tc := range testHallSeatNumberCases {
+		t.Run(tc.name, func(t *testing.T) {
+			db, mock := NewMock()
+			defer func() {
+				db.Close()
+			}()
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
+
+			mock.ExpectBegin()
+			tx, err := repo.DB.Begin()
+			if err != nil {
+				log.Fatalf("can't start transaction : %v", err)
+			}
+
+			tc.prepare(mock)
+
+			lastSeat, err := repo.HallSeatNumber(ticket.Session_ID, ctx, tx)
+
+			tc.transactionResult(mock)
+
+			assert.Equal(t, tc.expectedResult, lastSeat)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
