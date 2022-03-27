@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"database/sql"
 	"log"
 	"net/http"
@@ -21,13 +20,13 @@ type App struct {
 }
 
 // New creates router with handler
-func (a *App) New(db *sql.DB, l *zap.Logger, c context.Context) {
+func (a *App) New(db *sql.DB, l *zap.Logger) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
-	myRouter.HandleFunc("/v1/tickets/{id}", tickets.Init(db, l, c).HandleID)
-	myRouter.HandleFunc("/v1/tickets/{id}/dowload", tickets.Init(db, l, c).Download)
-	myRouter.HandleFunc("/v1/tickets", tickets.Init(db, l, c).Handle)
-	myRouter.HandleFunc("/v1/sessions/{id}/tickets", tickets.Init(db, l, c).Create)
+	myRouter.HandleFunc("/v1/tickets/{id}", tickets.Init(db, l).HandleID)
+	myRouter.HandleFunc("/v1/tickets/{id}/dowload", tickets.Init(db, l).Download)
+	myRouter.HandleFunc("/v1/tickets", tickets.Init(db, l).Handle)
+	myRouter.HandleFunc("/v1/sessions/{id}/tickets", tickets.Init(db, l).Create)
 	myRouter.HandleFunc("/v1/sessions/{id}", sessions.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/sessions", sessions.Init(db, l).Handle)
 	myRouter.HandleFunc("/v1/halls/{id}/sessions", sessions.Init(db, l).Create)

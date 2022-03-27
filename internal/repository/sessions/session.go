@@ -3,6 +3,7 @@ package session
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"go.uber.org/zap"
@@ -130,6 +131,14 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		Join("halls ON sessions.hall_id = halls.id").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).Query()
+
+	if err == sql.ErrNoRows {
+
+		fmt.Println("NoRowsNoRowsNoRowsNoRowsNoRowsNoRowsNoRows")
+
+		return nil, nil
+	}
+
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll sessions query.",
 			zap.Error(err),
@@ -144,9 +153,6 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		res := &Resource{}
 
 		err = rows.Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
-		if err == sql.ErrNoRows {
-			return nil, nil
-		}
 
 		if err != nil {
 			r.Log.Info("Failed to scan rows into session structures.",
@@ -204,14 +210,6 @@ func (r *Repository) TimeValid(i internal.Identifiable, ctx context.Context) (bo
 
 	if rows == 0 {
 		return true, nil
-	}
-
-	if err != nil {
-		r.Log.Info("Failed to run time valid session query.",
-			zap.Error(err),
-		)
-
-		return false, internal.ErrInternalFailure
 	}
 
 	return false, internal.ErrValidationFailed

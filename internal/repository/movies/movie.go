@@ -161,3 +161,4 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 
 	return interfaceSlice, nil
 }
+

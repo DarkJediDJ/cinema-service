@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -60,8 +59,6 @@ func main() {
 		}
 	}()
 
-	ctx := context.Background()
-
-	a.New(db, logger, ctx)
+	a.New(db, logger)
 	a.Run(port)
 }

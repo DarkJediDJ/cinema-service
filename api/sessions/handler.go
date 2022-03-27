@@ -19,7 +19,6 @@ import (
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
-	ctx context.Context
 }
 
 func Init(db *sql.DB, l *zap.Logger) *Handler {
@@ -68,6 +67,9 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /halls/{id}/sessions [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -95,7 +97,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	}
 
 	session.Hall_id = int64(id)
-	resource, err := h.s.Create(&session, h.ctx)
+	resource, err := h.s.Create(&session, ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
@@ -151,6 +153,9 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 // @Router       /sessions/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -163,7 +168,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Delete(int64(id), h.ctx)
+	err = h.s.Delete(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
@@ -182,6 +187,8 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /sessions/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	response.Header().Set("Content-Type", "application/json")
 
@@ -197,7 +204,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Retrieve(int64(id), h.ctx)
+	resource, err := h.s.Retrieve(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -239,8 +246,12 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {array}  []internal.Identifiable
 // @Router       /sessions [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	response.Header().Set("Content-Type", "application/json")
-	resource, err := h.s.RetrieveAll(h.ctx)
+
+	resource, err := h.s.RetrieveAll(ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return

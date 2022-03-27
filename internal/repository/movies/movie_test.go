@@ -306,3 +306,8 @@ func TestDelete(t *testing.T) {
 		})
 	}
 }
+
+func TestGID(t *testing.T) {
+	res := &Resource{ID: movie.ID}
+	assert.Equal(t, movie.ID, res.GID())
+}

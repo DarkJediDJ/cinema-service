@@ -19,7 +19,6 @@ import (
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
-	ctx context.Context
 }
 
 func Init(db *sql.DB, l *zap.Logger) *Handler {
@@ -69,6 +68,9 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /movies [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	var movie repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
@@ -83,7 +85,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Create(&movie, h.ctx)
+	resource, err := h.s.Create(&movie, ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
@@ -138,6 +140,8 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /movies/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	vars := mux.Vars(request)
 
@@ -151,7 +155,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Delete(int64(id), h.ctx)
+	err = h.s.Delete(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
@@ -170,6 +174,8 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /movies/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	response.Header().Set("Content-Type", "application/json")
 
@@ -185,7 +191,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Retrieve(int64(id), h.ctx)
+	resource, err := h.s.Retrieve(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -227,8 +233,12 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {array}  []internal.Identifiable
 // @Router       /movies [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	response.Header().Set("Content-Type", "application/json")
-	resource, err := h.s.RetrieveAll(h.ctx)
+
+	resource, err := h.s.RetrieveAll(ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return

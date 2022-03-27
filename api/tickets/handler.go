@@ -21,11 +21,10 @@ import (
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
-	ctx context.Context
 	gen g.Client
 }
 
-func Init(db *sql.DB, l *zap.Logger, c context.Context) *Handler {
+func Init(db *sql.DB, l *zap.Logger) *Handler {
 
 	service := service.Init(db, l)
 	generator := g.Init(db, l)
@@ -33,7 +32,6 @@ func Init(db *sql.DB, l *zap.Logger, c context.Context) *Handler {
 	return &Handler{
 		s:   service,
 		log: l,
-		ctx: c,
 		gen: *generator,
 	}
 }
@@ -74,6 +72,9 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /sessions/{id}/tickets [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
@@ -101,7 +102,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	}
 
 	ticket.Session_ID = int64(id)
-	resource, err := h.s.Create(&ticket, h.ctx)
+	resource, err := h.s.Create(&ticket, ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
@@ -156,6 +157,8 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /tickets/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	vars := mux.Vars(request)
 
@@ -169,7 +172,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Delete(int64(id), h.ctx)
+	err = h.s.Delete(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
@@ -188,6 +191,8 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /tickets/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	response.Header().Set("Content-Type", "application/json")
 
@@ -203,7 +208,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Retrieve(int64(id), h.ctx)
+	resource, err := h.s.Retrieve(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -245,8 +250,12 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {array}  []internal.Identifiable
 // @Router       /tickets [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	response.Header().Set("Content-Type", "application/json")
-	resource, err := h.s.RetrieveAll(h.ctx)
+
+	resource, err := h.s.RetrieveAll(ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -288,6 +297,8 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 // @Success      200  {object}  internal.Identifiable
 // @Router       /tickets/{id}/dowload [get]
 func (h *Handler) Download(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	vars := mux.Vars(request)
 
@@ -301,7 +312,7 @@ func (h *Handler) Download(response http.ResponseWriter, request *http.Request) 
 		return
 	}
 
-	url, err := h.gen.GetTicket(h.ctx, int64(id))
+	url, err := h.gen.GetTicket(ctx, int64(id))
 	if err != nil {
 		h.log.Info("Failed to get ticket fron bucket.",
 			zap.Error(err),

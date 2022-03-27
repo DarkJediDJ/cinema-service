@@ -497,3 +497,8 @@ func TestHallSeatNumber(t *testing.T) {
 		})
 	}
 }
+
+func TestGID(t *testing.T) {
+	res := &Resource{ID: ticket.ID}
+	assert.Equal(t, ticket.ID, res.GID())
+}
