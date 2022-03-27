@@ -88,7 +88,7 @@ func TestCreate(t *testing.T) {
 			expectedError:  internal.ErrInternalFailure,
 			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
-				sqlm2.ExpectExec(regexp.QuoteMeta("SELECT movies.duration, sessions.starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id WHERE ($1, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = $2 AND sessions.movie_id = $3")).
+				sqlm2.ExpectExec(regexp.QuoteMeta("INSERT INTO sessions (.*)")).
 					WillReturnError(internal.ErrInternalFailure)
 			},
 			object: nil,

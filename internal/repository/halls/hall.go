@@ -47,7 +47,7 @@ func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (inter
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&id)
 
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&res.VIP, &res.ID, &res.Seats)
 
 	if err == sql.ErrNoRows {
@@ -102,7 +102,7 @@ func (r *Repository) Delete(id int64, ctx context.Context) error {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Exec()
+		ExecContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run Delete hall query.",
@@ -122,7 +122,7 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		Select("vip", "id", "seats").
 		From("halls").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB).Query()
+		RunWith(r.DB).QueryContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll halls query.",

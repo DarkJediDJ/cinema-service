@@ -41,6 +41,7 @@ func TestCreate(t *testing.T) {
 		expectedResult    int64
 		prepare           func(sqlm2 sqlmock.Sqlmock)
 		transactionResult func(sqlm2 sqlmock.Sqlmock)
+		object            internal.Identifiable
 	}{
 		{
 			name:           "failed, database error",
@@ -53,6 +54,7 @@ func TestCreate(t *testing.T) {
 			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectRollback()
 			},
+			object: ticket,
 		},
 		{
 			name:           "success",
@@ -72,6 +74,7 @@ func TestCreate(t *testing.T) {
 			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectCommit()
 			},
+			object: ticket,
 		},
 		{
 			name:           "failed, retrieve error",
@@ -84,6 +87,20 @@ func TestCreate(t *testing.T) {
 			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectRollback()
 			},
+			object: ticket,
+		},
+		{
+			name:           "failed, assertion error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: 0,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO tickets (.*)").
+					WillReturnError(internal.ErrInternalFailure)
+			},
+			transactionResult: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectRollback()
+			},
+			object: nil,
 		},
 	}
 
@@ -116,7 +133,7 @@ func TestCreate(t *testing.T) {
 
 			tc.prepare(mock)
 
-			res, err := repo.Create(ctx, ticket, tx)
+			res, err := repo.Create(ctx, tc.object, tx)
 
 			tc.transactionResult(mock)
 

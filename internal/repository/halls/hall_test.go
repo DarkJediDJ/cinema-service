@@ -40,6 +40,7 @@ func TestCreate(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
+		object         internal.Identifiable
 	}{
 		{
 			name:           "failed, database error",
@@ -49,6 +50,7 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
 					WillReturnError(internal.ErrInternalFailure)
 			},
+			object: hall,
 		},
 		{
 			name:           "success",
@@ -65,6 +67,7 @@ func TestCreate(t *testing.T) {
 						NewRows([]string{"vip", "id", "seats"}).
 						AddRow(hall.VIP, hall.ID, hall.Seats))
 			},
+			object: hall,
 		},
 		{
 			name:           "failed, retrieve error",
@@ -74,6 +77,17 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
 					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
+			object: hall,
+		},
+		{
+			name:           "failed, assertion error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO halls (.*)").
+					WillReturnError(internal.ErrInternalFailure)
+			},
+			object: nil,
 		},
 	}
 
@@ -95,7 +109,7 @@ func TestCreate(t *testing.T) {
 			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Create(hall, ctx)
+			res, err := repo.Create(tc.object, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -301,4 +315,9 @@ func TestDelete(t *testing.T) {
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
+}
+
+func TestGID(t *testing.T) {
+	res := &Resource{ID: hall.ID}
+	assert.Equal(t, hall.ID, res.GID())
 }

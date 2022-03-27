@@ -79,7 +79,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&res.ID, &res.User_ID, &res.Price, &res.Session_ID, &res.Title, &res.Seat, &res.Starts_at)
 
 	if err == sql.ErrNoRows {
@@ -108,7 +108,7 @@ func (r *Repository) Delete(id int64, ctx context.Context) error {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Exec()
+		ExecContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run Delete session query.",
@@ -130,7 +130,8 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		Join("sessions ON tickets.session_id = sessions.id").
 		Join("movies ON sessions.movie_id = movies.id").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB).Query()
+		RunWith(r.DB).
+		QueryContext(ctx)
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll sessions query.",
 			zap.Error(err),
@@ -184,7 +185,7 @@ func (r *Repository) SeatNumber(id int64, ctx context.Context, tx *sql.Tx) (inte
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&seat)
 
 	if err != nil {
@@ -214,7 +215,7 @@ func (r *Repository) HallSeatNumber(id int64, ctx context.Context, tx *sql.Tx) (
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&seat)
 
 	if err != nil {

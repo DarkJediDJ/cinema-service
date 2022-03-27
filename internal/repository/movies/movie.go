@@ -47,7 +47,7 @@ func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (inter
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&id)
 
 	if err != nil {
@@ -73,7 +73,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&res.Name, &res.Duration, &res.ID)
 
 	if err == sql.ErrNoRows {
@@ -102,7 +102,7 @@ func (r *Repository) Delete(id int64, ctx context.Context) error {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Exec()
+		ExecContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run Delete movie query.",
@@ -123,7 +123,8 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		From("movies").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Query()
+		QueryContext(ctx)
+
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll movies query.",
 			zap.Error(err),
@@ -161,4 +162,3 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 
 	return interfaceSlice, nil
 }
-

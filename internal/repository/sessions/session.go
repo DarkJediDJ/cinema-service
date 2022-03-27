@@ -33,7 +33,7 @@ func (r *Resource) GID() int64 {
 
 // Create new entity in storage
 func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
-	var id int
+	var id int64
 
 	session, ok := i.(*Resource)
 	if !ok {
@@ -51,7 +51,7 @@ func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (inter
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&id)
 
 	if err != nil {
@@ -62,7 +62,7 @@ func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (inter
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(int64(id), ctx)
+	return r.Retrieve(id, ctx)
 }
 
 // Retrieve entity from storage
@@ -79,7 +79,7 @@ func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifia
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&res.ID, &res.VIP, &res.Name, &res.Starts_at)
 
 	if err == sql.ErrNoRows {
@@ -108,7 +108,7 @@ func (r *Repository) Delete(id int64, ctx context.Context) error {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Exec()
+		ExecContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run Delete session query.",
@@ -130,7 +130,8 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		Join("movies ON sessions.movie_id = movies.id").
 		Join("halls ON sessions.hall_id = halls.id").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB).Query()
+		RunWith(r.DB).
+		QueryContext(ctx)
 
 	if err == sql.ErrNoRows {
 
@@ -190,7 +191,7 @@ func (r *Repository) TimeValid(i internal.Identifiable, ctx context.Context) (bo
 		Where("(?, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = ? AND sessions.movie_id = ?", session.Starts_at, session.Hall_id, session.Movie_id).
 		RunWith(r.DB).
 		PlaceholderFormat(sq.Dollar).
-		Exec()
+		ExecContext(ctx)
 	if err != nil {
 		r.Log.Info("Failed to run query.",
 			zap.Error(err),
