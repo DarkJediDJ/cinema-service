@@ -169,24 +169,18 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 	return interfaceSlice, nil
 }
 
-func (r *Repository) SeatNumber(i internal.Identifiable, ctx context.Context, tx *sql.Tx) (int64, error) {
+func (r *Repository) SeatNumber(id int64, ctx context.Context, tx *sql.Tx) (internal.Identifiable, error) {
 	var seat sql.NullInt64
 
-	ticket, ok := i.(*Resource)
-	if !ok {
-		r.Log.Info("Failed to create ticket object.",
-			zap.Bool("ok", ok),
-		)
+	var res Resource
 
-		return 0, internal.ErrInternalFailure
-	}
 	err := sq.
 		Select("MAX(tickets.seat)").
 		From("tickets").
 		Join("sessions ON tickets.session_id = sessions.id").
 		Join("halls ON sessions.hall_id = halls.id").
 		Where(sq.Eq{
-			"sessions.id": ticket.Session_ID,
+			"sessions.id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
@@ -198,29 +192,25 @@ func (r *Repository) SeatNumber(i internal.Identifiable, ctx context.Context, tx
 			zap.Error(err),
 		)
 
-		return 0, internal.ErrInternalFailure
+		return nil, internal.ErrInternalFailure
 	}
 
-	return seat.Int64, nil
+	res.Seat = seat.Int64
+
+	return &res, nil
 }
 
-func (r *Repository) HallSeatNumber(i internal.Identifiable, ctx context.Context, tx *sql.Tx) (int64, error) {
+func (r *Repository) HallSeatNumber(id int64, ctx context.Context, tx *sql.Tx) (internal.Identifiable, error) {
 	var seat sql.NullInt64
 
-	ticket, ok := i.(*Resource)
-	if !ok {
-		r.Log.Info("Failed to create ticket object.",
-			zap.Bool("ok", ok),
-		)
+	var res Resource
 
-		return 0, internal.ErrInternalFailure
-	}
 	err := sq.
 		Select("halls.seats").
 		From("sessions").
 		Join("halls ON sessions.hall_id = halls.id").
 		Where(sq.Eq{
-			"sessions.id": ticket.Session_ID,
+			"sessions.id": id,
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
@@ -232,8 +222,10 @@ func (r *Repository) HallSeatNumber(i internal.Identifiable, ctx context.Context
 			zap.Error(err),
 		)
 
-		return 0, internal.ErrInternalFailure
+		return nil, internal.ErrInternalFailure
 	}
 
-	return seat.Int64, nil
+	res.Seat = seat.Int64
+
+	return &res, nil
 }

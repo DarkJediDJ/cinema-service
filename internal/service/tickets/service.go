@@ -51,7 +51,7 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		return nil, fmt.Errorf("%w:couldn't open transaction connection", err)
 	}
 
-	seatT, err := s.repo.SeatNumber(i, ctx, tx)
+	lastSeat, err := s.repo.SeatNumber(res.Session_ID, ctx, tx)
 	if err != nil {
 		err = tx.Rollback()
 		if err != nil {
@@ -60,7 +60,16 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		return nil, err
 	}
 
-	seatH, err := s.repo.HallSeatNumber(i, ctx, tx)
+	lSeat, ok := lastSeat.(*h.Resource)
+	if !ok {
+		s.log.Info("Failed to assert ticket object.",
+			zap.Bool("ok", ok),
+		)
+
+		return nil, internal.ErrInternalFailure
+	}
+
+	maxSeat, err := s.repo.HallSeatNumber(res.Session_ID, ctx, tx)
 	if err != nil {
 		err = tx.Rollback()
 		if err != nil {
@@ -69,11 +78,20 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		return nil, err
 	}
 
-	if seatT >= seatH {
+	mSeat, ok := maxSeat.(*h.Resource)
+	if !ok {
+		s.log.Info("Failed to assert ticket object.",
+			zap.Bool("ok", ok),
+		)
+
+		return nil, internal.ErrInternalFailure
+	}
+
+	if lSeat.Seat >= mSeat.Seat {
 		return nil, internal.ErrValidationFailed
 	}
 
-	res.Seat = seatT + 1
+	res.Seat = lSeat.Seat + 1
 
 	createdID, err := s.repo.Create(ctx, res, tx)
 	if err != nil {
