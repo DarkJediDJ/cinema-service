@@ -1,6 +1,7 @@
 package movies
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"time"
@@ -29,7 +30,7 @@ func Init(db *sql.DB, l *zap.Logger) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	res, ok := i.(*h.Resource)
 	if !ok {
 		s.log.Info("Failed to assert movie object.",
@@ -70,20 +71,20 @@ func (s *Service) Create(i internal.Identifiable) (internal.Identifiable, error)
 		return nil, error
 	}
 
-	return s.repo.Create(i)
+	return s.repo.Create(i, ctx)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
-	return s.repo.Retrieve(id)
+func (s *Service) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
+	return s.repo.Retrieve(id, ctx)
 }
 
 // RetrieveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
-	return s.repo.RetrieveAll()
+func (s *Service) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
+	return s.repo.RetrieveAll(ctx)
 }
 
 // Delete logic layer for repository method
-func (s *Service) Delete(id int64) error {
-	return s.repo.Delete(id)
+func (s *Service) Delete(id int64, ctx context.Context) error {
+	return s.repo.Delete(id, ctx)
 }

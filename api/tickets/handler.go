@@ -1,6 +1,8 @@
-package sessions
+package tickets
 
 import (
+	"bytes"
+	"context"
 	"database/sql"
 	"encoding/json"
 	"errors"
@@ -11,22 +13,26 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
-	repo "github.com/darkjedidj/cinema-service/internal/repository/sessions"
-	service "github.com/darkjedidj/cinema-service/internal/service/sessions"
+	repo "github.com/darkjedidj/cinema-service/internal/repository/tickets"
+	service "github.com/darkjedidj/cinema-service/internal/service/tickets"
+	g "github.com/darkjedidj/cinema-service/package/generator"
 )
 
 type Handler struct {
 	s   internal.Service // Allows use service features
 	log *zap.Logger
+	gen g.Client
 }
 
 func Init(db *sql.DB, l *zap.Logger) *Handler {
 
 	service := service.Init(db, l)
+	generator := g.Init(db, l)
 
 	return &Handler{
 		s:   service,
 		log: l,
+		gen: *generator,
 	}
 }
 
@@ -35,9 +41,9 @@ func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) 
 
 	switch request.Method {
 	case http.MethodGet:
-		h.Get(response, request) // GET BASE_URL/v1/sessions/{id}
+		h.Get(response, request) // GET BASE_URL/v1/tickets/{id}
 	case http.MethodDelete:
-		h.Delete(response, request) // DELETE BASE_URL/v1/sessions/{id}
+		h.Delete(response, request) // DELETE BASE_URL/v1/tickets/{id}
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -48,29 +54,32 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
 	case http.MethodGet:
-		h.GetAll(response, request) // GET BASE_URL/v1/sessions
+		h.GetAll(response, request) // GET BASE_URL/v1/tickets
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-// Create get json and creates new session
+// Create get json and creates new ticket
 // Create godoc
-// @Summary      Create session
-// @Description  Creates session and returns created object
-// @Tags         Sessions
-// @Param        id  path  integer  true  "Session ID"
-// @Param        Body  body  internal.Identifiable  true  "The body to create a session"
+// @Summary      Create ticket
+// @Description  Creates ticket and returns created object
+// @Tags         Tickets
+// @Param        id  path  integer  true  "ticket ID"
+// @Param        Body  body  internal.Identifiable  true  "The body to create a ticket"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /halls/{id}/sessions [post]
+// @Router       /sessions/{id}/tickets [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse session id.",
+		h.log.Info("Failed to parse ticket id.",
 			zap.Error(err),
 		)
 
@@ -78,13 +87,13 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var session repo.Resource
+	var ticket repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
 
-	err = json.NewDecoder(request.Body).Decode(&session)
+	err = json.NewDecoder(request.Body).Decode(&ticket)
 	if err != nil {
-		h.log.Info("Failed to decode session json.",
+		h.log.Info("Failed to decode ticket json.",
 			zap.Error(err),
 		)
 
@@ -92,15 +101,15 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	session.Hall_id = int64(id)
-	resource, err := h.s.Create(&session)
+	ticket.Session_ID = int64(id)
+	resource, err := h.s.Create(&ticket, ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
 
 			_, err = response.Write([]byte(err.Error()))
 			if err != nil {
-				h.log.Info("Failed to write session response.",
+				h.log.Info("Failed to write ticket response.",
 					zap.Error(err),
 				)
 
@@ -117,7 +126,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall session structure.",
+		h.log.Info("Failed to marshall ticket structure.",
 			zap.Error(err),
 		)
 
@@ -127,7 +136,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write session response.",
+		h.log.Info("Failed to write ticket response.",
 			zap.Error(err),
 		)
 
@@ -137,23 +146,25 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 }
 
-// Delete get ID and deletes session with the same ID
+// Delete get ID and deletes ticket with the same ID
 // Delete godoc
-// @Summary      Delete session
-// @Description  Deletes session
-// @Param        id  path  integer  true  "Session ID"
-// @Tags         Sessions
+// @Summary      Delete ticket
+// @Description  Deletes ticket
+// @Param        id  path  integer  true  "ticket ID"
+// @Tags         Tickets
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /sessions/{id} [delete]
+// @Router       /tickets/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	vars := mux.Vars(request)
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse session id.",
+		h.log.Info("Failed to parse ticket id.",
 			zap.Error(err),
 		)
 
@@ -161,7 +172,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	err = h.s.Delete(int64(id))
+	err = h.s.Delete(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 	}
@@ -169,17 +180,19 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	response.WriteHeader(http.StatusOK)
 }
 
-// Get ID and selects session with the same ID
+// Get ID and selects ticket with the same ID
 // Get godoc
-// @Summary      Get session
-// @Description  Gets session
-// @Param        id  path  integer  true  "Session ID"
-// @Tags         Sessions
+// @Summary      Get ticket
+// @Description  Gets ticket
+// @Param        id  path  integer  true  "ticket ID"
+// @Tags         Tickets
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /sessions/{id} [get]
+// @Router       /tickets/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
 
 	response.Header().Set("Content-Type", "application/json")
 
@@ -187,7 +200,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse session id.",
+		h.log.Info("Failed to parse ticket id.",
 			zap.Error(err),
 		)
 
@@ -195,7 +208,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Retrieve(int64(id))
+	resource, err := h.s.Retrieve(int64(id), ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -208,7 +221,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall session structure.",
+		h.log.Info("Failed to marshall ticket structure.",
 			zap.Error(err),
 		)
 
@@ -218,7 +231,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write session response.",
+		h.log.Info("Failed to write ticket response.",
 			zap.Error(err),
 		)
 
@@ -227,18 +240,22 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetAll selects all sessions
+// GetAll selects all tickets
 // GetAll godoc
-// @Summary      List session
-// @Description  get sessions
-// @Tags         Sessions
+// @Summary      List ticket
+// @Description  get tickets
+// @Tags         Tickets
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}  []internal.Identifiable
-// @Router       /sessions [get]
+// @Router       /tickets [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
 	response.Header().Set("Content-Type", "application/json")
-	resource, err := h.s.RetrieveAll()
+
+	resource, err := h.s.RetrieveAll(ctx)
 	if err != nil {
 		response.WriteHeader(http.StatusUnprocessableEntity)
 		return
@@ -251,7 +268,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall session structure.",
+		h.log.Info("Failed to marshall ticket structure.",
 			zap.Error(err),
 		)
 
@@ -261,11 +278,70 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write session response.",
+		h.log.Info("Failed to write ticket response.",
 			zap.Error(err),
 		)
 
 		response.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+}
+
+// Download bought ticket
+// Download godoc
+// @Summary      Download ticket
+// @Param        id  path  integer  true  "ticket ID"
+// @Tags         Tickets
+// @Accept       json
+// @Produce      json
+// @Success      200  {object}  internal.Identifiable
+// @Router       /tickets/{id}/dowload [get]
+func (h *Handler) Download(response http.ResponseWriter, request *http.Request) {
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	vars := mux.Vars(request)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		h.log.Info("Failed to parse ticket id.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+
+	url, err := h.gen.GetTicket(ctx, int64(id))
+	if err != nil {
+		h.log.Info("Failed to get ticket fron bucket.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusUnprocessableEntity)
+	}
+
+	bf := bytes.NewBuffer([]byte{})
+	jsonEncoder := json.NewEncoder(bf)
+	jsonEncoder.SetEscapeHTML(false)
+	err = jsonEncoder.Encode(url)
+	if err != nil {
+		h.log.Info("Failed to decode ticket json.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	_, err = response.Write(bf.Bytes())
+	if err != nil {
+		h.log.Info("Failed to write ticket response.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	response.WriteHeader(http.StatusOK)
 }

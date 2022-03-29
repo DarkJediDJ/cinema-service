@@ -1,6 +1,7 @@
 package sessions
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 
@@ -26,37 +27,37 @@ func Init(db *sql.DB, l *zap.Logger) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	res, ok := i.(*h.Resource)
 	if !ok {
-		s.log.Info("Failed to assert movie object.",
+		s.log.Info("Failed to assert session object.",
 			zap.Bool("ok", ok),
 		)
 
 		return nil, internal.ErrInternalFailure
 	}
 
-	valid, err := s.repo.TimeValid(res)
+	valid, err := s.repo.TimeValid(res, ctx)
 	if err != nil {
 		return nil, err
 	}
 	if valid {
-		return s.repo.Create(i)
+		return s.repo.Create(i, ctx)
 	}
 	return nil, fmt.Errorf("%w: this time is already in use", internal.ErrValidationFailed)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
-	return s.repo.Retrieve(int64(id))
+func (s *Service) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
+	return s.repo.Retrieve(int64(id), ctx)
 }
 
 // RetriveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
-	return s.repo.RetrieveAll()
+func (s *Service) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
+	return s.repo.RetrieveAll(ctx)
 }
 
 // Delete logic layer for repository method
-func (s *Service) Delete(id int64) error {
-	return s.repo.Delete(int64(id))
+func (s *Service) Delete(id int64, ctx context.Context) error {
+	return s.repo.Delete(int64(id), ctx)
 }

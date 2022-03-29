@@ -1,19 +1,21 @@
 package internal
 
+import "context"
+
 type Creator interface {
-	Create(r Identifiable) (Identifiable, error)
+	Create(r Identifiable, ctx context.Context) (Identifiable, error)
 }
 
 type Deleter interface {
-	Delete(id int64) error
+	Delete(id int64, ctx context.Context) error
 }
 
 type Retriever interface {
-	Retrieve(id int64) (Identifiable, error)
+	Retrieve(id int64, ctx context.Context) (Identifiable, error)
 }
 
 type RetrieverAll interface {
-	RetrieveAll() ([]Identifiable, error)
+	RetrieveAll(ctx context.Context) ([]Identifiable, error)
 }
 
 type Service interface {

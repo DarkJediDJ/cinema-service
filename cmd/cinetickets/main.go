@@ -58,6 +58,7 @@ func main() {
 			fmt.Println(err)
 		}
 	}()
+
 	a.New(db, logger)
 	a.Run(port)
 }

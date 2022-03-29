@@ -12,6 +12,7 @@ import (
 	"github.com/darkjedidj/cinema-service/api/halls"
 	"github.com/darkjedidj/cinema-service/api/movies"
 	"github.com/darkjedidj/cinema-service/api/sessions"
+	"github.com/darkjedidj/cinema-service/api/tickets"
 )
 
 type App struct {
@@ -22,6 +23,10 @@ type App struct {
 func (a *App) New(db *sql.DB, l *zap.Logger) {
 
 	myRouter := mux.NewRouter().StrictSlash(false)
+	myRouter.HandleFunc("/v1/tickets/{id}", tickets.Init(db, l).HandleID)
+	myRouter.HandleFunc("/v1/tickets/{id}/dowload", tickets.Init(db, l).Download)
+	myRouter.HandleFunc("/v1/tickets", tickets.Init(db, l).Handle)
+	myRouter.HandleFunc("/v1/sessions/{id}/tickets", tickets.Init(db, l).Create)
 	myRouter.HandleFunc("/v1/sessions/{id}", sessions.Init(db, l).HandleID)
 	myRouter.HandleFunc("/v1/sessions", sessions.Init(db, l).Handle)
 	myRouter.HandleFunc("/v1/halls/{id}/sessions", sessions.Init(db, l).Create)

@@ -1,6 +1,7 @@
 package halls
 
 import (
+	"context"
 	"database/sql"
 
 	"go.uber.org/zap"
@@ -25,21 +26,21 @@ func Init(db *sql.DB, l *zap.Logger) *Service {
 }
 
 // Create logic layer for repository method
-func (s *Service) Create(r internal.Identifiable) (internal.Identifiable, error) {
-	return s.repo.Create(r)
+func (s *Service) Create(r internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
+	return s.repo.Create(r, ctx)
 }
 
 // Retrieve logic layer for repository method
-func (s *Service) Retrieve(id int64) (internal.Identifiable, error) {
-	return s.repo.Retrieve(id)
+func (s *Service) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
+	return s.repo.Retrieve(id, ctx)
 }
 
 // RetriveAll logic layer for repository method
-func (s *Service) RetrieveAll() ([]internal.Identifiable, error) {
-	return s.repo.RetrieveAll()
+func (s *Service) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
+	return s.repo.RetrieveAll(ctx)
 }
 
 // Delete logic layer for repository method
-func (s *Service) Delete(id int64) error {
-	return s.repo.Delete(id)
+func (s *Service) Delete(id int64, ctx context.Context) error {
+	return s.repo.Delete(id, ctx)
 }

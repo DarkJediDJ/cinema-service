@@ -1,6 +1,7 @@
 package hall
 
 import (
+	"context"
 	"database/sql"
 
 	sq "github.com/Masterminds/squirrel"
@@ -27,7 +28,7 @@ func (r *Resource) GID() int64 {
 }
 
 // Create new entity in storage
-func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, error) {
+func (r *Repository) Create(i internal.Identifiable, ctx context.Context) (internal.Identifiable, error) {
 	var id int64
 
 	hall, ok := i.(*Resource)
@@ -46,7 +47,7 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&id)
 
 	if err != nil {
@@ -57,11 +58,11 @@ func (r *Repository) Create(i internal.Identifiable) (internal.Identifiable, err
 		return nil, internal.ErrInternalFailure
 	}
 
-	return r.Retrieve(id)
+	return r.Retrieve(id, ctx)
 }
 
 // Retrieve entity from storage
-func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
+func (r *Repository) Retrieve(id int64, ctx context.Context) (internal.Identifiable, error) {
 	var res Resource
 
 	err := sq.
@@ -72,7 +73,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		QueryRow().
+		QueryRowContext(ctx).
 		Scan(&res.VIP, &res.ID, &res.Seats)
 
 	if err == sql.ErrNoRows {
@@ -92,7 +93,7 @@ func (r *Repository) Retrieve(id int64) (internal.Identifiable, error) {
 }
 
 // Delete entity in storage
-func (r *Repository) Delete(id int64) error {
+func (r *Repository) Delete(id int64, ctx context.Context) error {
 
 	_, err := sq.
 		Delete("halls").
@@ -101,7 +102,7 @@ func (r *Repository) Delete(id int64) error {
 		}).
 		PlaceholderFormat(sq.Dollar).
 		RunWith(r.DB).
-		Exec()
+		ExecContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run Delete hall query.",
@@ -115,13 +116,13 @@ func (r *Repository) Delete(id int64) error {
 }
 
 // RetrieveAll entity from storage
-func (r *Repository) RetrieveAll() ([]internal.Identifiable, error) {
+func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, error) {
 
 	rows, err := sq.
 		Select("vip", "id", "seats").
 		From("halls").
 		PlaceholderFormat(sq.Dollar).
-		RunWith(r.DB).Query()
+		RunWith(r.DB).QueryContext(ctx)
 
 	if err != nil {
 		r.Log.Info("Failed to run RetrieveAll halls query.",

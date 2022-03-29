@@ -1,6 +1,7 @@
 package movie
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
@@ -39,6 +40,7 @@ func TestCreate(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
+		object         internal.Identifiable
 	}{
 		{
 			name:           "failed, database error",
@@ -48,6 +50,7 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
 					WillReturnError(internal.ErrInternalFailure)
 			},
+			object: movie,
 		},
 		{
 			name:           "success",
@@ -64,6 +67,7 @@ func TestCreate(t *testing.T) {
 						NewRows([]string{"name", "duration", "id"}).
 						AddRow(movie.Name, movie.Duration, movie.ID))
 			},
+			object: movie,
 		},
 		{
 			name:           "failed, retrieve error",
@@ -73,6 +77,17 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
 					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
+			object: movie,
+		},
+		{
+			name:           "failed, assertion error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectQuery("INSERT INTO movies (.*)").
+					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
+			},
+			object: nil,
 		},
 	}
 
@@ -91,9 +106,10 @@ func TestCreate(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Create(movie)
+			res, err := repo.Create(tc.object, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -165,9 +181,10 @@ func TestRetrieve(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(movie.ID)
+			res, err := repo.Retrieve(movie.ID, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -233,9 +250,10 @@ func TestRetrieveAll(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.RetrieveAll()
+			res, err := repo.RetrieveAll(ctx)
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
 		})
@@ -294,10 +312,16 @@ func TestDelete(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			err = repo.Delete(tc.id)
+			err = repo.Delete(tc.id, ctx)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
+}
+
+func TestGID(t *testing.T) {
+	res := &Resource{ID: movie.ID}
+	assert.Equal(t, movie.ID, res.GID())
 }

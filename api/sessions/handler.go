@@ -1,4 +1,4 @@
-package movies
+package sessions
 
 import (
 	"context"
@@ -12,8 +12,8 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal"
-	repo "github.com/darkjedidj/cinema-service/internal/repository/movies"
-	service "github.com/darkjedidj/cinema-service/internal/service/movies"
+	repo "github.com/darkjedidj/cinema-service/internal/repository/sessions"
+	service "github.com/darkjedidj/cinema-service/internal/service/sessions"
 )
 
 type Handler struct {
@@ -36,9 +36,9 @@ func (h *Handler) HandleID(response http.ResponseWriter, request *http.Request) 
 
 	switch request.Method {
 	case http.MethodGet:
-		h.Get(response, request) // GET BASE_URL/v1/movies/{id}
+		h.Get(response, request) // GET BASE_URL/v1/sessions/{id}
 	case http.MethodDelete:
-		h.Delete(response, request) // DELETE BASE_URL/v1/movies/{id}
+		h.Delete(response, request) // DELETE BASE_URL/v1/sessions/{id}
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
@@ -49,35 +49,46 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 	switch request.Method {
 	case http.MethodGet:
-		h.GetAll(response, request) // GET BASE_URL/v1/movies
-	case http.MethodPost:
-		h.Create(response, request) // POST BASE_URL/v1/movies
+		h.GetAll(response, request) // GET BASE_URL/v1/sessions
 	default:
 		response.WriteHeader(http.StatusMethodNotAllowed)
 	}
 }
 
-// Create get json and creates new Movie
+// Create get json and creates new session
 // Create godoc
-// @Summary      Create movie
-// @Description  Creates movie and returns created object
-// @Tags         Movies
-// @Param         Body  body  internal.Identifiable  true  "The body to create a movie"
+// @Summary      Create session
+// @Description  Creates session and returns created object
+// @Tags         Sessions
+// @Param        id  path  integer  true  "Session ID"
+// @Param        Body  body  internal.Identifiable  true  "The body to create a session"
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /movies [post]
+// @Router       /halls/{id}/sessions [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	var movie repo.Resource
+	vars := mux.Vars(request)
+
+	id, err := strconv.Atoi(vars["id"])
+	if err != nil {
+		h.log.Info("Failed to parse session id.",
+			zap.Error(err),
+		)
+
+		response.WriteHeader(http.StatusBadGateway)
+		return
+	}
+
+	var session repo.Resource
 
 	response.Header().Set("Content-Type", "application/json")
 
-	err := json.NewDecoder(request.Body).Decode(&movie)
+	err = json.NewDecoder(request.Body).Decode(&session)
 	if err != nil {
-		h.log.Info("Failed to decode movie json.",
+		h.log.Info("Failed to decode session json.",
 			zap.Error(err),
 		)
 
@@ -85,14 +96,15 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	resource, err := h.s.Create(&movie, ctx)
+	session.Hall_id = int64(id)
+	resource, err := h.s.Create(&session, ctx)
 	if err != nil {
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
 
 			_, err = response.Write([]byte(err.Error()))
 			if err != nil {
-				h.log.Info("Failed to write movies response.",
+				h.log.Info("Failed to write session response.",
 					zap.Error(err),
 				)
 
@@ -109,7 +121,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall movie structure.",
+		h.log.Info("Failed to marshall session structure.",
 			zap.Error(err),
 		)
 
@@ -119,7 +131,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write movie response.",
+		h.log.Info("Failed to write session response.",
 			zap.Error(err),
 		)
 
@@ -129,17 +141,18 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 }
 
-// Delete get ID and deletes movie with the same ID
+// Delete get ID and deletes session with the same ID
 // Delete godoc
-// @Summary      Delete movie
-// @Description  Deletes movie
-// @Param        id  path  integer  true  "Movie ID"
-// @Tags         Movies
+// @Summary      Delete session
+// @Description  Deletes session
+// @Param        id  path  integer  true  "Session ID"
+// @Tags         Sessions
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /movies/{id} [delete]
+// @Router       /sessions/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
+
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
@@ -147,7 +160,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse movie id.",
+		h.log.Info("Failed to parse session id.",
 			zap.Error(err),
 		)
 
@@ -163,16 +176,16 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	response.WriteHeader(http.StatusOK)
 }
 
-// Get ID and selects movie with the same ID
+// Get ID and selects session with the same ID
 // Get godoc
-// @Summary      Get movie
-// @Description  Gets movie
-// @Param        id  path  integer  true  "Movie ID"
-// @Tags         Movies
+// @Summary      Get session
+// @Description  Gets session
+// @Param        id  path  integer  true  "Session ID"
+// @Tags         Sessions
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /movies/{id} [get]
+// @Router       /sessions/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -183,7 +196,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	id, err := strconv.Atoi(vars["id"])
 	if err != nil {
-		h.log.Info("Failed to parse movie id.",
+		h.log.Info("Failed to parse session id.",
 			zap.Error(err),
 		)
 
@@ -204,7 +217,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall movie structure.",
+		h.log.Info("Failed to marshall session structure.",
 			zap.Error(err),
 		)
 
@@ -214,7 +227,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write movie response.",
+		h.log.Info("Failed to write session response.",
 			zap.Error(err),
 		)
 
@@ -223,15 +236,15 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	}
 }
 
-// GetAll selects all movies
+// GetAll selects all sessions
 // GetAll godoc
-// @Summary      List movie
-// @Description  get movies
-// @Tags         Movies
+// @Summary      List session
+// @Description  get sessions
+// @Tags         Sessions
 // @Accept       json
 // @Produce      json
 // @Success      200  {array}  []internal.Identifiable
-// @Router       /movies [get]
+// @Router       /sessions [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -251,7 +264,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	body, err := json.Marshal(resource)
 	if err != nil {
-		h.log.Info("Failed to marshall movie structure.",
+		h.log.Info("Failed to marshall session structure.",
 			zap.Error(err),
 		)
 
@@ -261,7 +274,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write(body)
 	if err != nil {
-		h.log.Info("Failed to write movie response.",
+		h.log.Info("Failed to write session response.",
 			zap.Error(err),
 		)
 

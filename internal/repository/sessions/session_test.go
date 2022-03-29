@@ -1,9 +1,11 @@
 package session
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"log"
+	"regexp"
 	"testing"
 
 	"github.com/DATA-DOG/go-sqlmock"
@@ -42,6 +44,7 @@ func TestCreate(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
+		object         internal.Identifiable
 	}{
 		{
 			name:           "failed, database error",
@@ -51,6 +54,7 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO sessions (.*)").
 					WillReturnError(internal.ErrInternalFailure)
 			},
+			object: session,
 		},
 		{
 			name:           "success",
@@ -67,6 +71,7 @@ func TestCreate(t *testing.T) {
 						NewRows([]string{"id", "vip", "name", "starts_at"}).
 						AddRow(session.ID, session.VIP, session.Name, session.Starts_at))
 			},
+			object: session,
 		},
 		{
 			name:           "failed, retrieve error",
@@ -76,6 +81,17 @@ func TestCreate(t *testing.T) {
 				sqlm2.ExpectQuery("INSERT INTO sessions (.*)").
 					WillReturnError(fmt.Errorf("unable to retrieve Resource"))
 			},
+			object: session,
+		},
+		{
+			name:           "failed, assertion error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: nil,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec(regexp.QuoteMeta("INSERT INTO sessions (.*)")).
+					WillReturnError(internal.ErrInternalFailure)
+			},
+			object: nil,
 		},
 	}
 
@@ -94,9 +110,10 @@ func TestCreate(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Create(session)
+			res, err := repo.Create(tc.object, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -115,7 +132,6 @@ func TestRetrieve(t *testing.T) {
 		expectedError  error
 		expectedResult internal.Identifiable
 		prepare        func(sqlm2 sqlmock.Sqlmock)
-		id             int64
 	}{
 		{
 			name:           "success",
@@ -128,7 +144,6 @@ func TestRetrieve(t *testing.T) {
 						NewRows([]string{"id", "vip", "name", "starts_at"}).
 						AddRow(session.ID, session.VIP, session.Name, session.Starts_at))
 			},
-			id: int64(session.ID),
 		},
 		{
 			name:           "failed, database error",
@@ -138,7 +153,6 @@ func TestRetrieve(t *testing.T) {
 				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id WHERE sessions.id = \\$1").
 					WillReturnError(fmt.Errorf("unable to perform your request, please try again later"))
 			},
-			id: int64(session.ID),
 		},
 		{
 			name:           "failed, sql no rows error",
@@ -149,7 +163,6 @@ func TestRetrieve(t *testing.T) {
 					WillReturnRows(sqlm2.
 						NewRows(nil))
 			},
-			id: 5,
 		},
 	}
 
@@ -168,9 +181,10 @@ func TestRetrieve(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.Retrieve(session.ID)
+			res, err := repo.Retrieve(session.ID, ctx)
 
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
@@ -213,10 +227,10 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			name:           "failed, sql no rows error",
 			expectedError:  nil,
-			expectedResult: []internal.Identifiable{},
+			expectedResult: nil,
 			prepare: func(sqlm2 sqlmock.Sqlmock) {
 				sqlm2.ExpectQuery("SELECT sessions.id, halls.vip, movies.name, starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id JOIN halls ON sessions.hall_id = halls.id").
-					WillReturnRows(sqlm2.NewRows([]string{}))
+					WillReturnError(sql.ErrNoRows)
 			},
 		},
 	}
@@ -236,9 +250,10 @@ func TestRetrieveAll(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			res, err := repo.RetrieveAll()
+			res, err := repo.RetrieveAll(ctx)
 			assert.Equal(t, tc.expectedResult, res)
 			assert.Equal(t, tc.expectedError, err)
 		})
@@ -297,10 +312,88 @@ func TestDelete(t *testing.T) {
 			}()
 
 			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
 
 			tc.prepare(mock)
-			err = repo.Delete(tc.id)
+			err = repo.Delete(tc.id, ctx)
 			assert.Equal(t, tc.expectedError, err)
 		})
 	}
+}
+
+func TestTimeValid(t *testing.T) {
+	db, mock := NewMock()
+	defer func() {
+		db.Close()
+	}()
+
+	testTimeValidCases := []struct {
+		name           string
+		expectedError  error
+		expectedResult bool
+		prepare        func(sqlm2 sqlmock.Sqlmock)
+		object         internal.Identifiable
+	}{
+		{
+			name:           "success",
+			expectedError:  nil,
+			expectedResult: true,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec(regexp.QuoteMeta("SELECT movies.duration, sessions.starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id WHERE ($1, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = $2 AND sessions.movie_id = $3")).
+					WithArgs(session.Starts_at, session.Hall_id, session.Movie_id).
+					WillReturnResult(sqlmock.NewResult(1, 0))
+			},
+			object: session,
+		},
+		{
+			name:           "failed, validation error",
+			expectedError:  internal.ErrInternalFailure,
+			expectedResult: false,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec(regexp.QuoteMeta("SELECT movies.duration, sessions.starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id WHERE ($1, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = $2 AND sessions.movie_id = $3")).
+					WithArgs(session.Starts_at, session.Hall_id, session.Movie_id).
+					WillReturnError(internal.ErrInternalFailure)
+			},
+			object: session,
+		},
+		{
+			name:           "failed, assertion error",
+			expectedError:  internal.ErrValidationFailed,
+			expectedResult: false,
+			prepare: func(sqlm2 sqlmock.Sqlmock) {
+				sqlm2.ExpectExec(regexp.QuoteMeta("SELECT movies.duration, sessions.starts_at FROM sessions JOIN movies ON sessions.movie_id = movies.id WHERE ($1, movies.duration) OVERLAPS (sessions.starts_at , movies.duration) AND sessions.hall_id = $2 AND sessions.movie_id = $3")).
+					WillReturnError(internal.ErrValidationFailed)
+			},
+			object: nil,
+		},
+	}
+
+	for _, tc := range testTimeValidCases {
+		t.Run(tc.name, func(t *testing.T) {
+
+			logger, err := zap.NewProduction()
+			if err != nil {
+				log.Fatalf("can't initialize zap logger: %v", err)
+			}
+
+			defer func() {
+				if err := logger.Sync(); err != nil {
+					fmt.Println(err)
+				}
+			}()
+
+			repo := &Repository{DB: db, Log: logger}
+			ctx := context.Background()
+
+			tc.prepare(mock)
+			valid, err := repo.TimeValid(tc.object, ctx)
+			assert.Equal(t, tc.expectedResult, valid)
+			assert.Equal(t, tc.expectedError, err)
+		})
+	}
+}
+
+func TestGID(t *testing.T) {
+	res := &Resource{ID: session.ID}
+	assert.Equal(t, session.ID, res.GID())
 }
