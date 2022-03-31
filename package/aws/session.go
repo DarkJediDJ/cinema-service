@@ -7,7 +7,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
-	"github.com/joho/godotenv"
+// 	"github.com/joho/godotenv"
 )
 
 // AwsServiceInterface describes necessary methods
@@ -25,10 +25,10 @@ var (
 
 // GetSession creates new S3 connection
 func (as *awsService) GetSession() *session.Session {
-	err := godotenv.Load(".env")
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+// 	err := godotenv.Load(".env")
+// 	if err != nil {
+// 		log.Fatal("Error loading .env file")
+// 	}
 	S3Region := os.Getenv("REGION")
 
 	if as.Session != nil {

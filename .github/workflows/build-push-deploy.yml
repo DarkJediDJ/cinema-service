@@ -23,9 +23,6 @@ jobs:
         run: |
           echo "::set-output name=tag::$(echo ${GITHUB_SHA::7})"
 
-      - name: Export env vars
-        run:  chmod +x env.sh && sh env.sh
-
       - name: Build and push
         uses: docker/build-push-action@v2
         with:

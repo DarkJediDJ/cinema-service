@@ -15,7 +15,7 @@ import (
 	pb "github.com/darkjedidj/cinema-service/package/grpc/proto"
 )
 
-const port = "localhost:50051"
+const port = "ticketgenerator:50051"
 
 type Client struct {
 	Repo *t.Repository
