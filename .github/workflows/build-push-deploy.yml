@@ -1,0 +1,33 @@
+name: build-push-deploy
+
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build-push:
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Get short commit sha
+        id: sha
+        run: |
+          echo "::set-output name=tag::$(echo ${GITHUB_SHA::7})"
+
+      - name: Export env vars
+        run:  chmod +x env.sh && sh env.sh
+
+      - name: Build and push
+        uses: docker/build-push-action@v2
+        with:
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/cinetickets:${{steps.sha.outputs.tag}}, ${{ secrets.DOCKERHUB_USERNAME }}/cinetickets:latest
