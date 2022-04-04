@@ -41,7 +41,15 @@ func (h *Handler) CheckPrivileges(route string, next http.HandlerFunc) http.Hand
 		header := r.Header.Get("Authorization")
 		if len(header) == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Missing Authorization Header"))
+			_, err := w.Write([]byte("Missing Authorization Header"))
+			if err != nil {
+				h.log.Info("Failed to write ticket response.",
+					zap.Error(err),
+				)
+
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -90,7 +98,15 @@ func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 		header := r.Header.Get("Authorization")
 		if len(header) == 0 {
 			w.WriteHeader(http.StatusUnauthorized)
-			w.Write([]byte("Missing Authorization Header"))
+			_, err := w.Write([]byte("Missing Authorization Header"))
+			if err != nil {
+				h.log.Info("Failed to write ticket response.",
+					zap.Error(err),
+				)
+
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
 			return
 		}
 
@@ -266,7 +282,7 @@ func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	response.Write([]byte(`{"token":"` + jwtToken + `"}`))
+	_, err = response.Write([]byte(`{"token":"` + jwtToken + `"}`))
 	if err != nil {
 		h.log.Info("Failed to write ticket response.",
 			zap.Error(err),
