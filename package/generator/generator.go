@@ -74,7 +74,5 @@ func (c *Client) GetTicket(ctx context.Context, id int64) (*Link, error) {
 		return nil, err
 	}
 
-	fmt.Println(url)
-
 	return &Link{URL: url}, nil
 }

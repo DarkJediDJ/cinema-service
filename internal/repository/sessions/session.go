@@ -3,7 +3,6 @@ package session
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	sq "github.com/Masterminds/squirrel"
 	"go.uber.org/zap"
@@ -134,8 +133,6 @@ func (r *Repository) RetrieveAll(ctx context.Context) ([]internal.Identifiable, 
 		QueryContext(ctx)
 
 	if err == sql.ErrNoRows {
-
-		fmt.Println("NoRowsNoRowsNoRowsNoRowsNoRowsNoRowsNoRows")
 
 		return nil, nil
 	}
