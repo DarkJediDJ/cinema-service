@@ -122,6 +122,7 @@ func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 		}
 
 		id := claims.(jwt.MapClaims)["ID"].(float64)
+
 		privileges, err := h.s.RetrieveTickets(int64(ticket), int64(id))
 		if err != nil {
 			h.log.Info("Failed to get privileges.",

@@ -104,6 +104,13 @@ func (r *Repository) RetrievePrivileges(id int64) ([]string, error) {
 		RunWith(r.DB).
 		Query()
 
+	if err != nil {
+		r.Log.Info("Failed to run Retrieve privileges query.",
+			zap.Error(err),
+		)
+
+		return nil, internal.ErrInternalFailure
+	}
 	for rows.Next() {
 		var name string
 
@@ -121,14 +128,6 @@ func (r *Repository) RetrievePrivileges(id int64) ([]string, error) {
 		}
 
 		data = append(data, name)
-	}
-
-	if err != nil {
-		r.Log.Info("Failed to run Retrieve privileges query.",
-			zap.Error(err),
-		)
-
-		return nil, internal.ErrInternalFailure
 	}
 
 	return data, nil

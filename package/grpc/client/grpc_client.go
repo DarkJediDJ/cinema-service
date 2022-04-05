@@ -38,7 +38,6 @@ func (c *Client) CreatePDF(id int64, ctx context.Context) (int64, error) {
 		return 0, internal.ErrInternalFailure
 	}
 	defer conn.Close()
-
 	client := pb.NewTicketGeneratorClient(conn)
 
 	ctxTimeout, cancel := context.WithTimeout(ctx, 100*time.Second)
@@ -65,5 +64,6 @@ func (c *Client) CreatePDF(id int64, ctx context.Context) (int64, error) {
 		)
 		return 0, internal.ErrInternalFailure
 	}
+
 	return result.ID, nil
 }

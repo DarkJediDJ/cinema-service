@@ -46,8 +46,8 @@ func (r *Repository) Create(ctx context.Context, i internal.Identifiable, tx *sq
 
 	err := sq.
 		Insert("tickets").
-		Columns("user_id", "price", "session_id").
-		Values(ticket.User_ID, ticket.Price, ticket.Session_ID).
+		Columns("user_id", "price", "session_id", "seat").
+		Values(ticket.User_ID, ticket.Price, ticket.Session_ID, ticket.Seat).
 		Suffix("RETURNING \"id\"").
 		PlaceholderFormat(sq.Dollar).
 		RunWith(tx).
