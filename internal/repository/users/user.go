@@ -134,7 +134,7 @@ func (r *Repository) RetrievePrivileges(id int64) ([]string, error) {
 	return data, nil
 }
 
-// RetrievePrivileges entity from storage
+// RetrieveTickets entity from storage
 func (r *Repository) RetrieveTickets(ticket int64, user int64) (bool, error) {
 	var res string
 

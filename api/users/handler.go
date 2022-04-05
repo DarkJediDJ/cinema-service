@@ -36,6 +36,7 @@ func Init(db *sql.DB, l *zap.Logger) *Handler {
 	}
 }
 
+// CheckPrivileges of user
 func (h *Handler) CheckPrivileges(route string, next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		header := r.Header.Get("Authorization")
@@ -80,6 +81,7 @@ func (h *Handler) CheckPrivileges(route string, next http.HandlerFunc) http.Hand
 	}
 }
 
+// CheckTicket to download for user
 func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 
@@ -135,17 +137,16 @@ func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 	}
 }
 
-// Create get json and creates new ticket
-// Create godoc
-// @Summary      Create ticket
-// @Description  Creates ticket and returns created object
-// @Tags         Tickets
-// @Param        id  path  integer  true  "ticket ID"
-// @Param        Body  body  internal.Identifiable  true  "The body to create a ticket"
+// Signup
+// Signup godoc
+// @Summary      Signup
+// @Description  Signup
+// @Tags         Users
+// @Param        Body  body  internal.Identifiable  true  "Email and password"
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
-// @Router       /sessions/{id}/tickets [post]
+// @Success      201  {object}  internal.Identifiable
+// @Router       /signup [post]
 func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
@@ -190,16 +191,16 @@ func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 	response.WriteHeader(http.StatusCreated)
 }
 
-// Get ID and selects ticket with the same ID
-// Get godoc
-// @Summary      Get ticket
-// @Description  Gets ticket
-// @Param        id  path  integer  true  "ticket ID"
-// @Tags         Tickets
+// Signin
+// Signin godoc
+// @Summary      Signin
+// @Description  Signin
+// @Tags         Users
+// @Param        Body  body  internal.Identifiable  true  "Email and password"
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
-// @Router       /tickets/{id} [get]
+// @Success      201  {object}  internal.Identifiable
+// @Router       /signin [post]
 func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 

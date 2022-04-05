@@ -16,6 +16,7 @@ type Claims struct {
 
 var key = []byte(os.Getenv("ACCESS_SECRET"))
 
+// GenerateJWT for user
 func GenerateJWT(id int64) (string, error) {
 	err := godotenv.Load(".env")
 	if err != nil {
@@ -39,6 +40,7 @@ func GenerateJWT(id int64) (string, error) {
 	return AccessToken, nil
 }
 
+// VerifyToken params
 func VerifyToken(tokenString string) (jwt.Claims, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		return key, nil
