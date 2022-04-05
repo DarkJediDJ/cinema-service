@@ -410,6 +410,66 @@ const docTemplate = `{
                 }
             }
         },
+        "/signin": {
+            "post": {
+                "description": "Signin",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Signin",
+                "parameters": [
+                    {
+                        "description": "Email and password",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {}
+                    }
+                }
+            }
+        },
+        "/signup": {
+            "post": {
+                "description": "Signup",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Users"
+                ],
+                "summary": "Signup",
+                "parameters": [
+                    {
+                        "description": "Email and password",
+                        "name": "Body",
+                        "in": "body",
+                        "required": true,
+                        "schema": {}
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {}
+                    }
+                }
+            }
+        },
         "/tickets": {
             "get": {
                 "description": "get tickets",
@@ -495,7 +555,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/tickets/{id}/dowload": {
+        "/tickets/{id}/download": {
             "get": {
                 "consumes": [
                     "application/json"

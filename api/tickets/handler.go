@@ -295,7 +295,7 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 // @Accept       json
 // @Produce      json
 // @Success      200  {object}  internal.Identifiable
-// @Router       /tickets/{id}/dowload [get]
+// @Router       /tickets/{id}/download [get]
 func (h *Handler) Download(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()

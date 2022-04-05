@@ -4,11 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/joho/godotenv"
 	"go.uber.org/zap"
 
 	"github.com/darkjedidj/cinema-service/internal/repository/tickets"
@@ -38,6 +40,11 @@ func Init(db *sql.DB, l *zap.Logger) *Client {
 // GetTicket creates PDF file, stores it in S3 and returns ID
 func (c *Client) GetTicket(ctx context.Context, id int64) (*Link, error) {
 
+	err := godotenv.Load(".env")
+	if err != nil {
+		log.Fatalf("unable to load ENV vars: %v", err)
+	}
+
 	session := cloud.AwsService.GetSession()
 
 	S3BucketName := os.Getenv("BUCKET_NAME")
@@ -66,8 +73,6 @@ func (c *Client) GetTicket(ctx context.Context, id int64) (*Link, error) {
 		)
 		return nil, err
 	}
-
-	fmt.Println(url)
 
 	return &Link{URL: url}, nil
 }

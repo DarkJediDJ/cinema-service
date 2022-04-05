@@ -272,6 +272,46 @@ paths:
       summary: Create ticket
       tags:
       - Tickets
+  /signin:
+    post:
+      consumes:
+      - application/json
+      description: Signin
+      parameters:
+      - description: Email and password
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema: {}
+      summary: Signin
+      tags:
+      - Users
+  /signup:
+    post:
+      consumes:
+      - application/json
+      description: Signup
+      parameters:
+      - description: Email and password
+        in: body
+        name: Body
+        required: true
+        schema: {}
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema: {}
+      summary: Signup
+      tags:
+      - Users
   /tickets:
     get:
       consumes:
@@ -329,7 +369,7 @@ paths:
       summary: Get ticket
       tags:
       - Tickets
-  /tickets/{id}/dowload:
+  /tickets/{id}/download:
     get:
       consumes:
       - application/json
