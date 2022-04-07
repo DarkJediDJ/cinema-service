@@ -104,6 +104,22 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	ticket.Session_ID = int64(id)
 	resource, err := h.s.Create(&ticket, ctx)
 	if err != nil {
+
+		if errors.Is(err, internal.ErrNoSeats) {
+			response.WriteHeader(http.StatusBadRequest)
+
+			_, err = response.Write([]byte(err.Error()))
+			if err != nil {
+				h.log.Info("Failed to write ticket response.",
+					zap.Error(err),
+				)
+
+				response.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
 

@@ -88,7 +88,7 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 	}
 
 	if lSeat.Seat >= mSeat.Seat {
-		return nil, internal.ErrValidationFailed
+		return nil, internal.ErrNoSeats
 	}
 
 	res.Seat = lSeat.Seat + 1
