@@ -8,4 +8,7 @@ var (
 
 	// ErrValidationFailed creates nev validation error
 	ErrValidationFailed = errors.New("validation failed")
+
+	// ErrNoSeats creates nev seats error
+	ErrNoSeats = errors.New("no seats")
 )

@@ -62,14 +62,19 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 // Create get json and creates new ticket
 // Create godoc
+// @Security     ApiKeyAuth
 // @Summary      Create ticket
 // @Description  Creates ticket and returns created object
-// @Tags         Tickets
-// @Param        id  path  integer  true  "ticket ID"
-// @Param        Body  body  internal.Identifiable  true  "The body to create a ticket"
-// @Accept       json
-// @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Tags      Tickets
+// @Param        id    path  integer        true  "ticket ID"
+// @Param        Body  body  repo.Resource  true  "The body to create a ticket"
+// @Accept    json
+// @Produce   json
+// @Success      200  {object}  repo.Resource
+// @Failure   400
+// @Failure   422
+// @Failure   500
+// @Failure   401
 // @Router       /sessions/{id}/tickets [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -83,7 +88,7 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -100,10 +105,27 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
+	defer request.Body.Close()
 
 	ticket.Session_ID = int64(id)
 	resource, err := h.s.Create(&ticket, ctx)
 	if err != nil {
+
+		if errors.Is(err, internal.ErrNoSeats) {
+			response.WriteHeader(http.StatusBadRequest)
+
+			_, err = response.Write([]byte(err.Error()))
+			if err != nil {
+				h.log.Info("Failed to write ticket response.",
+					zap.Error(err),
+				)
+
+				response.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusBadRequest)
 
@@ -148,13 +170,18 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 // Delete get ID and deletes ticket with the same ID
 // Delete godoc
+// @Security     ApiKeyAuth
 // @Summary      Delete ticket
 // @Description  Deletes ticket
-// @Param        id  path  integer  true  "ticket ID"
+// @Param     id  path  integer  true  "ticket ID"
 // @Tags         Tickets
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /tickets/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -168,7 +195,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -182,13 +209,18 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects ticket with the same ID
 // Get godoc
+// @Security     ApiKeyAuth
 // @Summary      Get ticket
 // @Description  Gets ticket
 // @Param        id  path  integer  true  "ticket ID"
 // @Tags         Tickets
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200  {object}  repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /tickets/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -204,7 +236,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -242,12 +274,17 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all tickets
 // GetAll godoc
+// @Security     ApiKeyAuth
 // @Summary      List ticket
 // @Description  get tickets
 // @Tags         Tickets
 // @Accept       json
 // @Produce      json
-// @Success      200  {array}  []internal.Identifiable
+// @Success      200  {array}  []repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /tickets [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -289,13 +326,18 @@ func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 
 // Download bought ticket
 // Download godoc
-// @Summary      Download ticket
+// @Security  ApiKeyAuth
+// @Summary   Download ticket
 // @Param        id  path  integer  true  "ticket ID"
 // @Tags         Tickets
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
-// @Router       /tickets/{id}/download [get]
+// @Success   200  {object}  g.Link
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
+// @Router    /tickets/{id}/download [get]
 func (h *Handler) Download(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -308,7 +350,7 @@ func (h *Handler) Download(response http.ResponseWriter, request *http.Request) 
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 

@@ -59,13 +59,18 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 // Create get json and creates new Movie
 // Create godoc
+// @Security     ApiKeyAuth
 // @Summary      Create movie
 // @Description  Creates movie and returns created object
 // @Tags         Movies
-// @Param         Body  body  internal.Identifiable  true  "The body to create a movie"
+// @Param        Body  body  repo.Resource  true  "The body to create a movie"
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200   {object}  repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /movies [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -131,13 +136,18 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 // Delete get ID and deletes movie with the same ID
 // Delete godoc
+// @Security     ApiKeyAuth
 // @Summary      Delete movie
 // @Description  Deletes movie
 // @Param        id  path  integer  true  "Movie ID"
 // @Tags         Movies
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /movies/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -151,7 +161,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -165,13 +175,18 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects movie with the same ID
 // Get godoc
+// @Security     ApiKeyAuth
 // @Summary      Get movie
 // @Description  Gets movie
 // @Param        id  path  integer  true  "Movie ID"
 // @Tags         Movies
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200  {object}  repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /movies/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -187,7 +202,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -225,12 +240,17 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all movies
 // GetAll godoc
+// @Security     ApiKeyAuth
 // @Summary      List movie
 // @Description  get movies
 // @Tags         Movies
 // @Accept       json
 // @Produce      json
-// @Success      200  {array}  []internal.Identifiable
+// @Success      200  {array}  []repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /movies [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
