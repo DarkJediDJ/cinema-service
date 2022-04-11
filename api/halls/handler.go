@@ -59,13 +59,18 @@ func (h *Handler) Handle(response http.ResponseWriter, request *http.Request) {
 
 // Create get json and creates new Hall
 // Create godoc
+// @Security     ApiKeyAuth
 // @Summary      Create hall
 // @Description  Creates hall and returns created object
 // @Tags         Halls
-// @Param         Body  body  internal.Identifiable  true  "The body to create a hall"
+// @Param        Body  body  repo.Resource  true  "The body to create a hall"
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200  {object}  repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /halls [post]
 func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -115,13 +120,18 @@ func (h *Handler) Create(response http.ResponseWriter, request *http.Request) {
 
 // Delete get ID and deletes Hall with the same ID
 // Delete godoc
+// @Security     ApiKeyAuth
 // @Summary      Delete hall
 // @Description  Deletes hall
 // @Param        id  path  integer  true  "Hall ID"
 // @Tags         Halls
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /halls/{id} [delete]
 func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -135,7 +145,7 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -149,13 +159,18 @@ func (h *Handler) Delete(response http.ResponseWriter, request *http.Request) {
 
 // Get ID and selects Hall with the same ID
 // Get godoc
+// @Security     ApiKeyAuth
 // @Summary      Get hall
 // @Description  Gets hall
 // @Param        id  path  integer  true  "Hall ID"
 // @Tags         Halls
 // @Accept       json
 // @Produce      json
-// @Success      200  {object}  internal.Identifiable
+// @Success      200  {object}  repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /halls/{id} [get]
 func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())
@@ -171,7 +186,7 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 			zap.Error(err),
 		)
 
-		response.WriteHeader(http.StatusBadGateway)
+		response.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -209,12 +224,17 @@ func (h *Handler) Get(response http.ResponseWriter, request *http.Request) {
 
 // GetAll selects all Halls
 // GetAll godoc
+// @Security     ApiKeyAuth
 // @Summary      List halls
 // @Description  get halls
 // @Tags         Halls
 // @Accept       json
 // @Produce      json
-// @Success      200  {array}  []internal.Identifiable
+// @Success      200  {array}  []repo.Resource
+// @Failure      400
+// @Failure      422
+// @Failure      500
+// @Failure      401
 // @Router       /halls [get]
 func (h *Handler) GetAll(response http.ResponseWriter, request *http.Request) {
 	ctx, cancel := context.WithCancel(context.Background())

@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"database/sql"
+	"regexp"
 
 	"go.uber.org/zap"
 
@@ -42,6 +43,14 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) error {
 	}
 
 	if dbuser != nil {
+		return internal.ErrValidationFailed
+	}
+
+	match, err := regexp.MatchString(`^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,4}$`, res.EMail)
+	if err != nil {
+		return internal.ErrInternalFailure
+	}
+	if !match {
 		return internal.ErrValidationFailed
 	}
 

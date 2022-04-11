@@ -93,7 +93,7 @@ func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 				zap.Error(err),
 			)
 
-			w.WriteHeader(http.StatusBadGateway)
+			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
@@ -143,10 +143,13 @@ func (h *Handler) CheckTicket(next http.HandlerFunc) http.HandlerFunc {
 // @Summary      Signup
 // @Description  Signup
 // @Tags         Users
-// @Param        Body  body  internal.Identifiable  true  "Email and password"
+// @Param        Body  body  repo.Resource  true  "Email and password"
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  internal.Identifiable
+// @Success      201
+// @Failure      400
+// @Failure      422
+// @Failure      500
 // @Router       /signup [post]
 func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
@@ -197,10 +200,13 @@ func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 // @Summary      Signin
 // @Description  Signin
 // @Tags         Users
-// @Param        Body  body  internal.Identifiable  true  "Email and password"
+// @Param        Body  body  repo.Resource  true  "Email and password"
 // @Accept       json
 // @Produce      json
-// @Success      201  {object}  internal.Identifiable
+// @Success      200  {object}  string
+// @Failure      400
+// @Failure      422
+// @Failure      500
 // @Router       /signin [post]
 func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")

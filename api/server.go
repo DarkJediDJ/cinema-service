@@ -13,6 +13,7 @@ import (
 	"github.com/darkjedidj/cinema-service/api/movies"
 	"github.com/darkjedidj/cinema-service/api/sessions"
 	"github.com/darkjedidj/cinema-service/api/tickets"
+	"github.com/darkjedidj/cinema-service/api/user_privileges"
 	"github.com/darkjedidj/cinema-service/api/users"
 )
 
@@ -35,6 +36,8 @@ func (a *App) New(db *sql.DB, l *zap.Logger) {
 	myRouter.HandleFunc("/v1/movies", users.Init(db, l).CheckPrivileges("movies", movies.Init(db, l).Handle))
 	myRouter.HandleFunc("/v1/halls/{id}", users.Init(db, l).CheckPrivileges("halls", halls.Init(db, l).HandleID))
 	myRouter.HandleFunc("/v1/halls", users.Init(db, l).CheckPrivileges("halls", halls.Init(db, l).Handle))
+	myRouter.HandleFunc("/v1/user_privileges/{id}", users.Init(db, l).CheckPrivileges("privileges", user_privileges.Init(db, l).HandleID))
+	myRouter.HandleFunc("/v1/user_privileges", users.Init(db, l).CheckPrivileges("privileges", user_privileges.Init(db, l).Handle))
 	myRouter.HandleFunc("/v1/signin", users.Init(db, l).Signin)
 	myRouter.HandleFunc("/v1/signup", users.Init(db, l).Signup)
 	myRouter.PathPrefix("/swagger/").Handler(httpSwagger.Handler(

@@ -1,5 +1,83 @@
 basePath: /v1
-host: localhost:8085
+definitions:
+  hall.Resource:
+    properties:
+      ID:
+        type: integer
+      VIP:
+        type: boolean
+      seats:
+        type: integer
+    type: object
+  movie.Resource:
+    properties:
+      Duration:
+        type: string
+      ID:
+        type: integer
+      Name:
+        type: string
+    type: object
+  session.Resource:
+    properties:
+      ID:
+        type: integer
+      Movie name:
+        type: string
+      Starts_at:
+        type: string
+      VIP:
+        type: boolean
+      hall_id:
+        type: integer
+      movie_id:
+        type: integer
+    type: object
+  tckgenerator.Link:
+    properties:
+      url:
+        type: string
+    type: object
+  tickets.Resource:
+    properties:
+      Starts_at:
+        type: string
+      id:
+        type: integer
+      price:
+        type: number
+      seat:
+        type: integer
+      session_ID:
+        type: integer
+      title:
+        type: string
+      user_ID:
+        type: integer
+    type: object
+  user.Resource:
+    properties:
+      ID:
+        type: integer
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  user_privileges.Resource:
+    properties:
+      Email:
+        type: string
+      ID:
+        type: integer
+      Privilege:
+        type: string
+      Privilege_id:
+        type: integer
+      User_id:
+        type: integer
+    type: object
+host: cinema-alb-dev-o81jt53c-906642332.us-east-1.elb.amazonaws.com:8085
 info:
   contact:
     email: support@swagger.io
@@ -25,9 +103,20 @@ paths:
           description: OK
           schema:
             items:
-              items: {}
+              items:
+                $ref: '#/definitions/hall.Resource'
               type: array
             type: array
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: List halls
       tags:
       - Halls
@@ -40,13 +129,25 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/hall.Resource'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/hall.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Create hall
       tags:
       - Halls
@@ -65,8 +166,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema: {}
+          description: ""
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Delete hall
       tags:
       - Halls
@@ -85,7 +195,18 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/hall.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Get hall
       tags:
       - Halls
@@ -104,13 +225,25 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/session.Resource'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/session.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Create session
       tags:
       - Sessions
@@ -126,9 +259,20 @@ paths:
           description: OK
           schema:
             items:
-              items: {}
+              items:
+                $ref: '#/definitions/movie.Resource'
               type: array
             type: array
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: List movie
       tags:
       - Movies
@@ -141,13 +285,25 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/movie.Resource'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/movie.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Create movie
       tags:
       - Movies
@@ -166,8 +322,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema: {}
+          description: ""
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Delete movie
       tags:
       - Movies
@@ -186,7 +351,18 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/movie.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Get movie
       tags:
       - Movies
@@ -202,9 +378,20 @@ paths:
           description: OK
           schema:
             items:
-              items: {}
+              items:
+                $ref: '#/definitions/session.Resource'
               type: array
             type: array
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: List session
       tags:
       - Sessions
@@ -223,8 +410,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema: {}
+          description: ""
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Delete session
       tags:
       - Sessions
@@ -243,7 +439,18 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/session.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Get session
       tags:
       - Sessions
@@ -262,13 +469,25 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/tickets.Resource'
       produces:
       - application/json
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/tickets.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Create ticket
       tags:
       - Tickets
@@ -282,13 +501,21 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/user.Resource'
       produces:
       - application/json
       responses:
-        "201":
-          description: Created
-          schema: {}
+        "200":
+          description: OK
+          schema:
+            type: string
+        "400":
+          description: "Bad Request"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
       summary: Signin
       tags:
       - Users
@@ -302,13 +529,19 @@ paths:
         in: body
         name: Body
         required: true
-        schema: {}
+        schema:
+          $ref: '#/definitions/user.Resource'
       produces:
       - application/json
       responses:
         "201":
-          description: Created
-          schema: {}
+          description: ""
+        "400":
+          description: "Bad Request"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
       summary: Signup
       tags:
       - Users
@@ -324,9 +557,20 @@ paths:
           description: OK
           schema:
             items:
-              items: {}
+              items:
+                $ref: '#/definitions/tickets.Resource'
               type: array
             type: array
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: List ticket
       tags:
       - Tickets
@@ -345,8 +589,17 @@ paths:
       - application/json
       responses:
         "200":
-          description: OK
-          schema: {}
+          description: ""
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Delete ticket
       tags:
       - Tickets
@@ -365,7 +618,18 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/tickets.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Get ticket
       tags:
       - Tickets
@@ -384,8 +648,143 @@ paths:
       responses:
         "200":
           description: OK
-          schema: {}
+          schema:
+            $ref: '#/definitions/tckgenerator.Link'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
       summary: Download ticket
       tags:
       - Tickets
+  /user_privileges:
+    get:
+      consumes:
+      - application/json
+      description: get User Privileges
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            items:
+              items:
+                $ref: '#/definitions/user_privileges.Resource'
+              type: array
+            type: array
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
+      summary: List User Privileges
+      tags:
+      - User Privileges
+    post:
+      consumes:
+      - application/json
+      description: Creates User Privilege and returns created object
+      parameters:
+      - description: The body to create a User Privilege
+        in: body
+        name: Body
+        required: true
+        schema:
+          $ref: '#/definitions/user_privileges.Resource'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_privileges.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
+      summary: Create User Privilege
+      tags:
+      - User Privileges
+  /user_privileges/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Deletes User Privilege
+      parameters:
+      - description: User Privilege ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: ""
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
+      summary: Delete User Privilege
+      tags:
+      - User Privileges
+    get:
+      consumes:
+      - application/json
+      description: Gets User Privilege
+      parameters:
+      - description: User Privilege ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/user_privileges.Resource'
+        "400":
+          description: "Bad Request"
+        "401":
+          description: "Unauthorized"
+        "422":
+          description: "Unprocessable Entity"
+        "500":
+          description: "Internal Server Error"
+      security:
+      - ApiKeyAuth: []
+      summary: Get User Privilege
+      tags:
+      - User Privileges
+securityDefinitions:
+  ApiKeyAuth:
+    in: header
+    name: Authorization
+    type: apiKey
 swagger: "2.0"
