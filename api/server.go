@@ -38,7 +38,7 @@ func (a *App) New(db *sql.DB, l *zap.Logger) {
 	myRouter.HandleFunc("/v1/signin", users.Init(db, l).Signin)
 	myRouter.HandleFunc("/v1/signup", users.Init(db, l).Signup)
 	myRouter.PathPrefix("/swagger/").Handler(httpSwagger.Handler(
-		httpSwagger.URL("http://localhost:8085/swagger/doc.json"), //The url pointing to API definition
+		httpSwagger.URL("http://cinema-alb-dev-o81jt53c-906642332.us-east-1.elb.amazonaws.com:8085/swagger/doc.json"), //The url pointing to API definition
 	))
 	a.Router = myRouter
 }
