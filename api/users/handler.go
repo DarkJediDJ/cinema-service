@@ -161,7 +161,7 @@ func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 
 	err := json.NewDecoder(request.Body).Decode(&user)
 	if err != nil {
-		h.log.Info("Failed to decode ticket json.",
+		h.log.Info("Failed to decode user json.",
 			zap.Error(err),
 		)
 
@@ -172,12 +172,26 @@ func (h *Handler) Signup(response http.ResponseWriter, request *http.Request) {
 
 	err = h.s.Create(&user, ctx)
 	if err != nil {
+		if errors.Is(err, internal.ErrWrongEmail) {
+			response.WriteHeader(http.StatusUnprocessableEntity)
+
+			_, err = response.Write([]byte(`{"message":"Email format inccorect"}`))
+			if err != nil {
+				h.log.Info("Failed to write user response.",
+					zap.Error(err),
+				)
+
+				response.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			return
+		}
 		if errors.Is(err, internal.ErrValidationFailed) {
 			response.WriteHeader(http.StatusUnprocessableEntity)
 
 			_, err = response.Write([]byte(`{"message":"This email is already in use"}`))
 			if err != nil {
-				h.log.Info("Failed to write ticket response.",
+				h.log.Info("Failed to write user response.",
 					zap.Error(err),
 				)
 
@@ -249,7 +263,7 @@ func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusUnauthorized)
 		_, err = response.Write([]byte(`{"message":"Wrong email or password"}`))
 		if err != nil {
-			h.log.Info("Failed to write ticket response.",
+			h.log.Info("Failed to write user response.",
 				zap.Error(err),
 			)
 
@@ -274,7 +288,7 @@ func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 		response.WriteHeader(http.StatusUnauthorized)
 		_, err = response.Write([]byte(`{"message":"Wrong email or password"}`))
 		if err != nil {
-			h.log.Info("Failed to write ticket response.",
+			h.log.Info("Failed to write user response.",
 				zap.Error(err),
 			)
 
@@ -292,7 +306,7 @@ func (h *Handler) Signin(response http.ResponseWriter, request *http.Request) {
 
 	_, err = response.Write([]byte(`{"token":"` + jwtToken + `"}`))
 	if err != nil {
-		h.log.Info("Failed to write ticket response.",
+		h.log.Info("Failed to write user response.",
 			zap.Error(err),
 		)
 
