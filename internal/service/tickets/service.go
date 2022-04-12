@@ -14,9 +14,8 @@ import (
 
 // Service is a struct to store DB and logger connection
 type Service struct {
-	repo    *h.Repository
-	log     *zap.Logger
-	tokenID int64
+	repo *h.Repository
+	log  *zap.Logger
 }
 
 // Init returns Service object
@@ -37,10 +36,6 @@ func (s *Service) Create(i internal.Identifiable, ctx context.Context) (internal
 		)
 
 		return nil, internal.ErrInternalFailure
-	}
-
-	if s.tokenID != res.User_ID {
-		return nil, internal.ErrValidationFailed
 	}
 
 	timeoutCtx, cancel := context.WithTimeout(ctx, 100*time.Second)
