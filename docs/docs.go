@@ -234,7 +234,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Session ID",
+                        "description": "Hall ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -619,7 +619,7 @@ const docTemplate = `{
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ticket ID",
+                        "description": "session ID",
                         "name": "id",
                         "in": "path",
                         "required": true

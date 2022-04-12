@@ -227,7 +227,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "Session ID",
+                        "description": "Hall ID",
                         "name": "id",
                         "in": "path",
                         "required": true
@@ -611,7 +611,7 @@
                 "parameters": [
                     {
                         "type": "integer",
-                        "description": "ticket ID",
+                        "description": "Session ID",
                         "name": "id",
                         "in": "path",
                         "required": true
